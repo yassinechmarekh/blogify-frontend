@@ -117,5 +117,8 @@
   .footer-menu{
     @apply text-space-cadet hover:text-iris my-transition font-medium capitalize;
   }
+  .page-title {
+    @apply text-4xl font-semibold text-space-cadet capitalize;
+  }
 }
 

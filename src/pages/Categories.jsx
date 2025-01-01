@@ -43,7 +43,7 @@ function Categories() {
       <TopPage page="Categories" />
       <div className={"mt-6"}>
         <div className="container">
-          <h1 className={"text-4xl font-semibold text-space-cadet capitalize"}>
+          <h1 className={"page-title"}>
             Categories
           </h1>
           <div className={"mt-8 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-8"}>

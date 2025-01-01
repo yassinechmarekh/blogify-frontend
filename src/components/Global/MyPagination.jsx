@@ -13,22 +13,22 @@ function MyPagination() {
   return (
     <Pagination>
       <PaginationContent>
-        <PaginationItem className={'pagination-item'}>
+        <PaginationItem>
           <PaginationPrevious href="#" />
         </PaginationItem>
-        <PaginationItem className={'bg-white rounded-lg'}>
+        <PaginationItem className={'bg-white text-iris rounded-lg'}>
           <PaginationLink href="#">1</PaginationLink>
         </PaginationItem>
-        <PaginationItem className={'pagination-item'}>
+        <PaginationItem>
           <PaginationLink href="#">2</PaginationLink>
         </PaginationItem>
-        <PaginationItem className={'pagination-item'}>
+        <PaginationItem>
           <PaginationLink href="#">3</PaginationLink>
         </PaginationItem>
-        <PaginationItem className={'pagination-item'}>
+        <PaginationItem>
           <PaginationEllipsis />
         </PaginationItem>
-        <PaginationItem className={'pagination-item'}>
+        <PaginationItem>
           <PaginationNext href="#" />
         </PaginationItem>
       </PaginationContent>
