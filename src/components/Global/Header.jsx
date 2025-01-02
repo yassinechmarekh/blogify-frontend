@@ -17,7 +17,11 @@ function Header() {
     <header className="py-3 relative">
       <div className="container">
         <div className="flex items-center justify-between">
-          <LuMenu size={25} className={'md:hidden text-space-cadet'} onClick={()=> setmenuOpen(true)}/>
+          <LuMenu
+            size={25}
+            className={"md:hidden text-space-cadet"}
+            onClick={() => setmenuOpen(true)}
+          />
           <Logo />
           <ul className={"hidden md:flex gap-1"}>
             <NavLink
@@ -59,25 +63,17 @@ function Header() {
                 onClick={() => setSearchOpen(true)}
               />
             </span>
-            <Link
-              className={
-                "hidden md:block login-btn"
-              }
-            >
+            <Link to={"/login"} className={"hidden md:block login-btn"}>
               Login
             </Link>
-            <Link
-              className={
-                "hidden md:block signup-btn"
-              }
-            >
+            <Link to={"/register"} className={"hidden md:block signup-btn"}>
               Sign Up
             </Link>
           </div>
         </div>
       </div>
       {seachOpen && <SearchCard setSearchOpen={setSearchOpen} />}
-      <MenuMobile menuOpen={menuOpen} setmenuOpen={setmenuOpen}/>
+      <MenuMobile menuOpen={menuOpen} setmenuOpen={setmenuOpen} />
     </header>
   );
 }

@@ -9,10 +9,19 @@ function Newsletter() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm();
   const onsubmit = (data) => {
     console.log(data);
+    if (data) {
+      toast({
+        variant: "success",
+        title: "Email added succussfully.",
+        description: "Your email is added to our newsletter !",
+        className: "custom-toast-success"
+      });
+    }
   };
   const { toast } = useToast();
   const emailRef = useRef(null);
@@ -54,6 +63,7 @@ function Newsletter() {
               "w-full py-3 px-4 border outline-none rounded-lg shadow-sm focus:shadow-tropical-indigo my-transition placeholder:text-sm"
             }
             ref={emailRef}
+            onChange={(e) => setValue("email", e.target.value)}
           />
           <button
             type="submit"

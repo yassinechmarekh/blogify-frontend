@@ -120,5 +120,11 @@
   .page-title {
     @apply text-4xl font-semibold text-space-cadet capitalize;
   }
+  .auth-btn{
+    @apply w-full bg-gradient-to-t from-iris to-tropical-indigo hover:bg-gradient-to-b my-transition;
+  }
+  .custom-toast-success{
+    @apply bg-iris hover:bg-tropical-indigo text-white my-transition;
+  }
 }
 

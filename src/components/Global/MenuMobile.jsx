@@ -67,8 +67,8 @@ function MenuMobile({ menuOpen, setmenuOpen }) {
             </li>
           </ul>
           <div className={"flex gap-2 mt-2"}>
-            <Link className={"signup-btn"}>Sign Up</Link>
-            <Link className={"login-btn"}>Login</Link>
+            <Link to={'/register'} className={"signup-btn"}>Sign Up</Link>
+            <Link to={'/login'} className={"login-btn"}>Login</Link>
           </div>
         </nav>
         <ul
