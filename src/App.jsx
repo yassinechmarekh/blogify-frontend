@@ -11,6 +11,10 @@ import Footer from "./components/Global/Footer";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
+import CategorySingle from "./pages/CategorySingle";
+import PostSingle from "./pages/PostSingle";
+import AuthorSingle from "./pages/AuthorSingle";
+import ReaderSingle from "./pages/ReaderSingle";
 
 function App() {
   return (
@@ -24,6 +28,10 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/category-single" element={<CategorySingle />} />
+        <Route path="/post-single" element={<PostSingle />} />
+        <Route path="/author-single" element={<AuthorSingle />} />
+        <Route path="/reader-single" element={<ReaderSingle />} />
       </Routes>
       <Newsletter />
       <Footer/>

@@ -25,15 +25,15 @@ module.exports = {
           foreground: "hsl(var(--popover-foreground))",
         },
         primary: {
-          DEFAULT: "hsl(var(--primary))",
+          DEFAULT: "#514DCC",
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: "#9895FF",
+          foreground: "#ffffff",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
+          DEFAULT: "#dbdaff",
           foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
@@ -57,6 +57,21 @@ module.exports = {
       },
       screens: {
         xs: "400px",
+      },
+      keyframes: {
+        bounceX: {
+          "0%, 100%": {
+            transform: "translateX(0)",
+            animationTimingFunction: "cubic-bezier(0.8, 0, 1, 1)",
+          },
+          "50%": {
+            transform: "translateX(25%)",
+            animationTimingFunction: "cubic-bezier(0, 0, 0.2, 1)",
+          },
+        },
+      },
+      animation: {
+        "bounce-x": "bounceX 1s infinite",
       },
     },
   },

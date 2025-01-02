@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -30,7 +30,7 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem
+    --radius: 0.5rem;
   }
   .dark {
     --background: 0 0% 3.9%;
@@ -56,9 +56,9 @@
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%
+    --chart-5: 340 75% 55%;
   }
-  body{
+  body {
     font-family: "DM Sans", serif;
   }
 }
@@ -69,7 +69,7 @@
   body {
     @apply bg-background text-foreground;
   }
-  p{
+  p {
     @apply text-dim-gray;
   }
 }
@@ -78,53 +78,65 @@
   .container {
     @apply px-4 sm:px-6  mx-auto;
   }
-  .my-transition{
+  .my-transition {
     @apply transition-all duration-300 ease-in-out;
   }
-  .icon-list{ 
+  .icon-list {
     @apply text-space-cadet opacity-90 hover:opacity-100 my-transition;
   }
-  .signup-btn{
+  .signup-btn {
     @apply py-2 px-4 bg-gradient-to-t from-iris to-tropical-indigo rounded-lg font-medium text-white shadow-lg hover:shadow-tropical-indigo my-transition;
   }
-  .login-btn{
+  .login-btn {
     @apply py-2 px-4 hover:bg-slate-200 rounded-lg font-semibold text-space-cadet my-transition;
   }
-  .sidebar-title{
+  .sidebar-title {
     @apply text-sm text-dim-gray font-semibold uppercase;
   }
-  .latestblog-swp-pagination{
+  .latestblog-swp-pagination {
     @apply py-4 flex justify-center;
   }
-  .latestblog-swp-pagination .swiper-pagination-bullet-active{
+  .latestblog-swp-pagination .swiper-pagination-bullet-active {
     @apply bg-iris w-8 rounded-md;
   }
-  .latestblog-swp-pagination .swiper-pagination-bullet{
+  .latestblog-swp-pagination .swiper-pagination-bullet {
     @apply bg-iris opacity-100;
   }
-  .latestblog-swp-button-prev, .latestblog-swp-button-next{
+  .latestblog-swp-button-prev,
+  .latestblog-swp-button-next {
     @apply p-1 bg-white w-fit text-iris rounded-lg cursor-pointer absolute top-1/2 -translate-y-1/2 z-20;
   }
-  .latestblog-swp-button-prev{
+  .latestblog-swp-button-prev {
     @apply left-[-100%] group-hover:left-2 my-transition;
   }
-  .latestblog-swp-button-next{
+  .latestblog-swp-button-next {
     @apply right-[-100%] group-hover:right-2 my-transition;
   }
-  .pagination-item{
+  .pagination-item {
     @apply text-space-cadet hover:text-iris my-transition;
   }
-  .footer-menu{
+  .footer-menu {
     @apply text-space-cadet hover:text-iris my-transition font-medium capitalize;
   }
   .page-title {
     @apply text-4xl font-semibold text-space-cadet capitalize;
   }
-  .auth-btn{
+  .auth-btn {
     @apply w-full bg-gradient-to-t from-iris to-tropical-indigo hover:bg-gradient-to-b my-transition;
   }
-  .custom-toast-success{
+  .custom-toast-success {
     @apply bg-iris hover:bg-tropical-indigo text-white my-transition;
   }
+  .category-tag {
+    @apply py-1 px-3 bg-white text-space-cadet hover:text-tropical-indigo font-medium capitalize rounded-lg shadow-md hover:shadow-tropical-indigo my-transition;
+  }
+  .comment-input {
+    @apply border-gray-500 text-gray-600 placeholder:text-sm sm:placeholder:text-base focus-visible:border-tropical-indigo focus-visible:placeholder:text-iris focus-visible:text-iris;
+  }
+  .comment-label {
+    @apply text-gray-500;
+  }
+  .main-btn {
+    @apply bg-gradient-to-t from-iris to-tropical-indigo shadow-lg hover:shadow-iris/50 my-transition;
+  }
 }
-
