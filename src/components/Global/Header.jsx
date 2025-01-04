@@ -5,10 +5,12 @@ import { Link, NavLink } from "react-router-dom";
 import Logo from "./Logo";
 import SearchCard from "./SearchCard";
 import MenuMobile from "./MenuMobile";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 // Icons
 import { IoSearch } from "react-icons/io5";
 import { LuMenu } from "react-icons/lu";
+import { MdOutlineLogout } from "react-icons/md";
 
 function Header() {
   const [seachOpen, setSearchOpen] = useState(false);
@@ -55,7 +57,7 @@ function Header() {
               posts
             </NavLink>
           </ul>
-          <div className={"flex items-center gap-2"}>
+          <div className={"flex items-center gap-0 sm:gap-2"}>
             <span className={"py-1 px-4 md:border-r-2"}>
               <IoSearch
                 size={20}
@@ -69,6 +71,27 @@ function Header() {
             <Link to={"/register"} className={"hidden md:block signup-btn"}>
               Sign Up
             </Link>
+            {/* <div className={"flex items-center gap-1 lg:gap-2"}>
+              <Link>
+                <Avatar className={'w-8 h-8'}>
+                  <AvatarImage src="https://github.com/shadcn.png" />
+                  <AvatarFallback>CN</AvatarFallback>
+                </Avatar>
+              </Link>
+              <div className={"hidden lg:flex flex-col"}>
+                <Link
+                  className={
+                    "text-space-cadet text-sm hover:text-iris hover:underline font-medium capitalize"
+                  }
+                >
+                  Yassine
+                </Link>
+                <span className={"text-xs"}>yassine@gmail.com</span>
+              </div>
+              <button className={"login-btn p-2 hover:text-iris"}>
+                <MdOutlineLogout size={22} />
+              </button>
+            </div> */}
           </div>
         </div>
       </div>

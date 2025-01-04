@@ -139,4 +139,22 @@
   .main-btn {
     @apply bg-gradient-to-t from-iris to-tropical-indigo shadow-lg hover:shadow-iris/50 my-transition;
   }
+  .reader-profile-menu{
+    @apply py-2 px-4 rounded-lg;
+  }
+  .reader-profile-menu-inactive{
+    @apply hover:text-iris hover:underline my-transition;
+  }
+  .reader-profile-menu-active{
+    @apply bg-iris text-white;
+  }
+  .main-label{
+    @apply text-space-cadet;
+  }
+  .main-input{
+    @apply border-gray-500 placeholder:text-gray-500 focus-visible:border-tropical-indigo focus-visible:placeholder:text-iris my-transition;
+  }
+  .title-subpage-profile-reader {
+    @apply text-lg text-space-cadet font-medium capitalize;
+  }
 }

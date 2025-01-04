@@ -15,7 +15,7 @@ function SearchCard({ setSearchOpen }) {
   return (
     <div
       className={
-        "p-6 bg-background absolute top-full left-1/2 -translate-x-1/2 lg:left-3/4 w-[450px] rounded-lg shadow-lg shadow-iris/20 border border-iris/50"
+        "p-6 bg-background absolute top-full left-1/2 -translate-x-1/2 lg:left-3/4 w-11/12 xs:w-[450px] rounded-lg shadow-lg shadow-iris/20 border border-iris/50"
       }
     >
       <IoClose
