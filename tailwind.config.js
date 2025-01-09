@@ -15,7 +15,7 @@ module.exports = {
         "tropical-indigo": "#9895FF",
         "dim-gray": "#696981",
         background: "#f8f7ff",
-        foreground: "#514DCC",
+        foreground: "#29294B",
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",

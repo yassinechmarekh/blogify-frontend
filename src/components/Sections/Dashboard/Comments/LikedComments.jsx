@@ -78,17 +78,61 @@ const likedComments = [
     },
     likes: 250.0,
   },
+  {
+    post: "Top 7 Travel Startups to Watch Out for in 2024",
+    comment:
+      "This article is exactly what I needed! Your insights are incredibly helpful.",
+    owner: {
+      username: "Erling",
+      profile: "https://github.com/vercel.png",
+      bio: "The React Framework – created and maintained by @vercel.",
+    },
+    likes: 250.0,
+  },
+  {
+    post: "Top 7 Travel Startups to Watch Out for in 2024",
+    comment:
+      "This article is exactly what I needed! Your insights are incredibly helpful.",
+    owner: {
+      username: "Erling",
+      profile: "https://github.com/vercel.png",
+      bio: "The React Framework – created and maintained by @vercel.",
+    },
+    likes: 250.0,
+  },
+  {
+    post: "Top 7 Travel Startups to Watch Out for in 2024",
+    comment:
+      "This article is exactly what I needed! Your insights are incredibly helpful.",
+    owner: {
+      username: "Erling",
+      profile: "https://github.com/vercel.png",
+      bio: "The React Framework – created and maintained by @vercel.",
+    },
+    likes: 250.0,
+  },
+  {
+    post: "Top 7 Travel Startups to Watch Out for in 2024",
+    comment:
+      "This article is exactly what I needed! Your insights are incredibly helpful.",
+    owner: {
+      username: "Erling",
+      profile: "https://github.com/vercel.png",
+      bio: "The React Framework – created and maintained by @vercel.",
+    },
+    likes: 250.0,
+  },
 ];
 
 function LikedComments() {
   return (
     <section>
       <h1 className={"title-dashboard-pages"}>Liked Posts</h1>
-      <Table className={"text-space-cadet"}>
+      <Table className={"bg-white border rounded-2xl"}>
         <TableHeader>
           <TableRow>
-            <TableHead>Post</TableHead>
-            <TableHead>Comment</TableHead>
+            <TableHead className={"min-w-40"}>Post</TableHead>
+            <TableHead className={"min-w-44"}>Comment</TableHead>
             <TableHead>owner</TableHead>
             <TableHead>Likes</TableHead>
           </TableRow>
@@ -103,9 +147,7 @@ function LikedComments() {
                   {comment.post}
                 </Link>
               </TableCell>
-              <TableCell>
-                  {comment.comment}
-              </TableCell>
+              <TableCell>{comment.comment}</TableCell>
               <TableCell>
                 <HoverCard>
                   <HoverCardTrigger asChild>
@@ -135,9 +177,11 @@ function LikedComments() {
                   </HoverCardContent>
                 </HoverCard>
               </TableCell>
-              <TableCell className="flex items-center gap-1">
-                <FaHeart size={16} />
-                <span>{comment.likes}</span>
+              <TableCell>
+                <div className="flex items-center gap-1">
+                  <FaHeart size={16} />
+                  <span>{comment.likes}</span>
+                </div>
               </TableCell>
             </TableRow>
           ))}

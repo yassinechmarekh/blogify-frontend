@@ -119,7 +119,7 @@ function LikedPosts() {
   return (
     <section>
       <h1 className={"title-dashboard-pages"}>Liked Posts</h1>
-      <Table className={"text-space-cadet"}>
+      <Table className={"bg-white border rounded-2xl overflow-x-auto"}>
         <TableHeader>
           <TableRow>
             <TableHead>Author</TableHead>
