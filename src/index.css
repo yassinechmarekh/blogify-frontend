@@ -31,6 +31,14 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
   .dark {
     --background: 0 0% 3.9%;
@@ -57,6 +65,14 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
   body {
     font-family: "DM Sans", serif;
@@ -139,22 +155,28 @@
   .main-btn {
     @apply bg-gradient-to-t from-iris to-tropical-indigo shadow-lg hover:shadow-iris/50 my-transition;
   }
-  .reader-profile-menu{
+  .reader-profile-menu {
     @apply py-2 px-4 rounded-lg;
   }
-  .reader-profile-menu-inactive{
+  .reader-profile-menu-inactive {
     @apply hover:text-iris hover:underline my-transition;
   }
-  .reader-profile-menu-active{
+  .reader-profile-menu-active {
     @apply bg-iris text-white;
   }
-  .main-label{
+  .main-label {
     @apply text-space-cadet;
   }
-  .main-input{
-    @apply border-gray-500 placeholder:text-gray-500 focus-visible:border-tropical-indigo focus-visible:placeholder:text-iris my-transition;
+  .main-input {
+    @apply border-gray-500 text-space-cadet placeholder:text-gray-500 focus-visible:border-tropical-indigo focus-visible:placeholder:text-iris my-transition;
   }
   .title-subpage-profile-reader {
     @apply text-lg text-space-cadet font-medium capitalize;
+  }
+  .title-dashboard-pages {
+    @apply mb-4 text-xl text-space-cadet font-semibold capitalize;
+  }
+  .text-editor div {
+    @apply outline-none p-3 border rounded-lg focus-visible:border-iris h-48;
   }
 }

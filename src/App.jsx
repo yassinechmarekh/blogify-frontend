@@ -23,6 +23,21 @@ import LikedPosts from "./components/Sections/ReaderProfile/LikedPosts";
 import LikedComments from "./components/Sections/ReaderProfile/LikedComments";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+import AllCategories from "./components/Sections/Dashboard/Categories/AllCategories";
+import NewCategory from "./components/Sections/Dashboard/Categories/NewCategory";
+import AllUsers from "./components/Sections/Dashboard/Users/AllUsers";
+import Authors from "./components/Sections/Dashboard/Users/Authors";
+import Readers from "./components/Sections/Dashboard/Users/Readers";
+import AllPosts from "./components/Sections/Dashboard/Posts/AllPosts";
+import MyPosts from "./components/Sections/Dashboard/Posts/MyPosts";
+import NewPost from "./components/Sections/Dashboard/Posts/NewPost";
+import LikedPostsDashoard from "./components/Sections/Dashboard/Posts/LikedPosts";
+import AllComments from "./components/Sections/Dashboard/Comments/AllComments";
+import MyComments from "./components/Sections/Dashboard/Comments/MyComments";
+import LikedCommentsDashboard from "./components/Sections/Dashboard/Comments/LikedComments";
+import ProfileDashboard from "./components/Sections/Dashboard/Profile";
+import AccountDashboard from "./components/Sections/Dashboard/Account";
+import HomeDashboard from "./components/Sections/Dashboard/Home/Main";
 
 function Website() {
   return (
@@ -60,7 +75,24 @@ function App() {
             <Route path="liked-comments" element={<LikedComments />} />
           </Route>
         </Route>
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard/" element={<Dashboard />}>
+          <Route index element={<HomeDashboard/>} />
+          <Route path="home" element={<HomeDashboard/>} />
+          <Route path="categories/all" element={<AllCategories/>} />
+          <Route path="categories/create" element={<NewCategory/>} />
+          <Route path="users/all" element={<AllUsers/>} />
+          <Route path="users/authors" element={<Authors/>} />
+          <Route path="users/readers" element={<Readers/>} />
+          <Route path="posts/all" element={<AllPosts/>} />
+          <Route path="username/posts" element={<MyPosts/>} />
+          <Route path="posts/create" element={<NewPost/>} />
+          <Route path="username/posts/liked" element={<LikedPostsDashoard/>} />
+          <Route path="comments/all" element={<AllComments/>} />
+          <Route path="username/comments" element={<MyComments/>} />
+          <Route path="username/comments/liked" element={<LikedCommentsDashboard/>} />
+          <Route path="profile/username" element={<ProfileDashboard/>} />
+          <Route path="account/username" element={<AccountDashboard/>} />
+        </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
