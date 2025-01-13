@@ -38,6 +38,8 @@ import LikedCommentsDashboard from "./components/Sections/Dashboard/Comments/Lik
 import ProfileDashboard from "./components/Sections/Dashboard/Profile";
 import AccountDashboard from "./components/Sections/Dashboard/Account";
 import HomeDashboard from "./components/Sections/Dashboard/Home/Main";
+import EditPost from "./components/Sections/Dashboard/Posts/EditPost";
+import NewsletterPage from "./components/Sections/Dashboard/Newsletter";
 
 function Website() {
   return (
@@ -86,10 +88,12 @@ function App() {
           <Route path="posts/all" element={<AllPosts/>} />
           <Route path="username/posts" element={<MyPosts/>} />
           <Route path="posts/create" element={<NewPost/>} />
+          <Route path="posts/edit" element={<EditPost/>} />
           <Route path="username/posts/liked" element={<LikedPostsDashoard/>} />
           <Route path="comments/all" element={<AllComments/>} />
           <Route path="username/comments" element={<MyComments/>} />
           <Route path="username/comments/liked" element={<LikedCommentsDashboard/>} />
+          <Route path="newsletter" element={<NewsletterPage/>} />
           <Route path="profile/username" element={<ProfileDashboard/>} />
           <Route path="account/username" element={<AccountDashboard/>} />
         </Route>

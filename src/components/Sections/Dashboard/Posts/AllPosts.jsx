@@ -132,6 +132,7 @@ const columns = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className={'min-w-48'}
         >
           Title
           <ArrowUpDown />

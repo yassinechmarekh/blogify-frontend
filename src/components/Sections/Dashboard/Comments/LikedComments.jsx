@@ -127,7 +127,7 @@ const likedComments = [
 function LikedComments() {
   return (
     <section>
-      <h1 className={"title-dashboard-pages"}>Liked Posts</h1>
+      <h1 className={"title-dashboard-pages"}>Liked Comments</h1>
       <Table className={"bg-white border rounded-2xl"}>
         <TableHeader>
           <TableRow>

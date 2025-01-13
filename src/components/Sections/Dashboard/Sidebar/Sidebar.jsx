@@ -2,7 +2,6 @@ import React, { useState } from "react";
 
 // Components
 import NavMain from "@/components/Sections/Dashboard/Sidebar/Main";
-import NavAccount from "@/components/Sections/Dashboard/Sidebar/Account";
 import NavUser from "@/components/Sections/Dashboard/Sidebar/User";
 import {
   Sidebar,
@@ -21,6 +20,9 @@ import { MdArticle } from "react-icons/md";
 import { FaComments } from "react-icons/fa6";
 import { FaUser } from "react-icons/fa";
 import { MdAccountCircle } from "react-icons/md";
+import { AiFillDashboard } from "react-icons/ai";
+import { MdNotificationsActive } from "react-icons/md";
+
 
 function AppSidebar({ props }) {
   const data = {
@@ -30,6 +32,11 @@ function AppSidebar({ props }) {
       avatar: "https://github.com/shadcn.png",
     },
     navMain: [
+      {
+        title: "Dashboard",
+        url: "/dashboard/home",
+        icon: AiFillDashboard,
+      },
       {
         title: "Users",
         url: "#",
@@ -106,15 +113,18 @@ function AppSidebar({ props }) {
           },
         ],
       },
-    ],
-    account: [
       {
-        name: "Profile",
+        title: "Newsletter",
+        url: "/dashboard/newsletter",
+        icon: MdNotificationsActive,
+      },
+      {
+        title: "Profile",
         url: "/dashboard/profile/username",
         icon: FaUser,
       },
       {
-        name: "Account",
+        title: "Account",
         url: "/dashboard/account/username",
         icon: MdAccountCircle,
       },
@@ -133,7 +143,6 @@ function AppSidebar({ props }) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} menuActive={menuActive} setMenuActive={setMenuActive} />
-        <NavAccount account={data.account} menuActive={menuActive} setMenuActive={setMenuActive} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
