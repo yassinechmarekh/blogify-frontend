@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  getUser,
+  updateDataProfile,
+  uploadProfileImage,
+} from "@/redux/apiCalls/userApiCalls";
 
 // Components
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,13 +31,42 @@ import { FaFacebook } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import { FaInstagram } from "react-icons/fa6";
 import { FaLinkedin } from "react-icons/fa6";
+import { LuLoaderCircle } from "react-icons/lu";
+import { updateUserAuth } from "@/redux/apiCalls/authApiCalls";
 
 function Profile() {
+  const userAuth = useSelector((state) => state.auth);
+  const { user, message, error, loading } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(getUser(userAuth.user.userId));
+  }, [userAuth.user.userId]);
   const uploadProfileForm = useForm();
-  const dataProfileForm = useForm();
+  const dataProfileForm = useForm({
+    defaultValues: {
+      username: user?.username,
+    },
+  });
+  useEffect(() => {
+    if (user) {
+      dataProfileForm.reset({
+        username: user.username,
+        job: user.job,
+        bio: user.bio,
+        address: user.address,
+        facebook: user.socialLink.facebook,
+        twitter: user.socialLink.twitter,
+        instagram: user.socialLink.instagram,
+        linkedin: user.socialLink.linkedin,
+      });
+    }
+  }, [user, dataProfileForm.reset]);
   const [profileImg, setProfileImg] = useState(null);
   const submitUploadImg = (data) => {
     console.log(data);
+    const formData = new FormData();
+    formData.append("image", data.profileImg);
+    dispatch(uploadProfileImage(formData));
   };
   const submitDataProfile = (data) => {
     const result = {
@@ -39,14 +74,16 @@ function Profile() {
       job: data.job,
       bio: data.bio,
       address: data.address,
-      socialLinks: {
+      socialLink: {
         facebook: data.facebook,
         twitter: data.twitter,
         instagram: data.instagram,
         linkedin: data.linkedin,
-      }
-    }
+      },
+    };
     console.log(result);
+    dispatch(updateDataProfile(user._id, result));
+    dispatch(updateUserAuth(result.username, null, null));
   };
   const { toast } = useToast();
   useEffect(() => {
@@ -63,6 +100,24 @@ function Profile() {
       });
     }
   }, [uploadProfileForm.formState.errors.profileImg]);
+  useEffect(() => {
+    dispatch(updateUserAuth(null, null, user?.profilePhoto.url));
+  },[user?.profilePhoto.url]);
+  useEffect(() => {
+    if (message) {
+      toast({
+        variant: "succes",
+        description: message,
+        className: "custom-toast-success",
+      });
+    } else if (error) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: error,
+      });
+    }
+  }, [message, error]);
   return (
     <section>
       <h1 className={"title-dashboard-pages"}>Edit Profile</h1>
@@ -80,15 +135,15 @@ function Profile() {
                 src={
                   profileImg
                     ? URL.createObjectURL(profileImg)
-                    : "https://github.com/shadcn.png"
+                    : user?.profilePhoto.url
                 }
                 alt="@shadcn"
               />
-              <AvatarFallback>CN</AvatarFallback>
+              <AvatarFallback>{user?.username[0].toUpperCase()}</AvatarFallback>
             </Avatar>
             <span
               className={
-                "absolute inset-0 bg-black/20 hidden justify-center items-center rounded-full group-hover:flex"
+                "absolute inset-0 bg-black/50 text-tropical-indigo hidden justify-center items-center rounded-full group-hover:flex"
               }
             >
               <FaCamera size={24} />
@@ -120,14 +175,19 @@ function Profile() {
                 shouldValidate: true,
               });
               setProfileImg(file);
-              console.log(file);
             }}
           />
           <button
             type="submit"
-            className={"bg-iris text-white text-xs py-1 px-3 rounded-md"}
+            className={`bg-iris text-white text-xs w-24 h-6 flex items-center justify-center rounded-md ${
+              loading && "pointer-events-none"
+            }`}
           >
-            Upload Profile
+            {loading ? (
+              <LuLoaderCircle size={16} className={"animate-spin"} />
+            ) : (
+              <span>Upload Profile</span>
+            )}
           </button>
         </form>
         <Form {...dataProfileForm}>

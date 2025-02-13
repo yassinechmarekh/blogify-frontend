@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 // Components
 import {
@@ -15,45 +15,30 @@ import {
 // Icons
 import { FaHeart } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { getCommentsByUser } from "@/redux/apiCalls/commentApiCalls";
+import HoverUser from "@/components/Global/HoverUser";
+import { useToast } from "@/hooks/use-toast";
 
 function Comments() {
-  const comments = [
-    {
-      comment:
-        "I’ve been following your blog for a while now, and this post might be your best one yet!",
-      post: "The Future of Work: Tech and Remote Trends",
-      author: "Ethan Caldwell",
-      likes: 10,
-    },
-    {
-      comment:
-        "I’ve been following your blog for a while now, and this post might be your best one yet!",
-      post: "The Future of Work: Tech and Remote Trends",
-      author: "Ethan Caldwell",
-      likes: 10,
-    },
-    {
-      comment:
-        "I’ve been following your blog for a while now, and this post might be your best one yet!",
-      post: "The Future of Work: Tech and Remote Trends",
-      author: "Ethan Caldwell",
-      likes: 10,
-    },
-    {
-      comment:
-        "I’ve been following your blog for a while now, and this post might be your best one yet!",
-      post: "The Future of Work: Tech and Remote Trends",
-      author: "Ethan Caldwell",
-      likes: 10,
-    },
-    {
-      comment:
-        "I’ve been following your blog for a while now, and this post might be your best one yet!",
-      post: "The Future of Work: Tech and Remote Trends",
-      author: "Ethan Caldwell",
-      likes: 10,
-    },
-  ];
+  const { myComments, error } = useSelector((state) => state.comment);
+  const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  useEffect(() => {
+    if (user?.userId) {
+      dispatch(getCommentsByUser(user?.userId));
+    }
+  }, [user?.userId]);
+  const { toast } = useToast();
+  useEffect(() => {
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: error,
+      });
+    }
+  }, [error]);
   return (
     <section>
       <div className={"pb-4 border-b border-gray-300 mb-4"}>
@@ -70,29 +55,36 @@ function Comments() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {comments.map((item, index) => (
-            <TableRow key={index}>
-              <TableCell className="font-medium">{item.comment}</TableCell>
-              <TableCell>
-                <Link
-                  className={"hover:text-iris hover:underline my-transition"}
-                >
-                  {item.post}
-                </Link>
-              </TableCell>
-              <TableCell>
-                <Link
-                  className={"hover:text-iris hover:underline my-transition"}
-                >
-                  {item.author}
-                </Link>
-              </TableCell>
-              <TableCell className="flex items-center gap-1 text-iris">
-                <FaHeart size={14} />
-                <span className={"text-xs"}>{item.likes}</span>
+          {myComments.length > 0 ? (
+            myComments?.map((comment) => (
+              <TableRow key={comment._id}>
+                <TableCell className="font-medium">{comment.content}</TableCell>
+                <TableCell>
+                  <Link
+                    to={`/posts/${comment.postSlug}`}
+                    className={"hover:text-iris hover:underline my-transition"}
+                  >
+                    {comment.postTitle}
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  <HoverUser user={comment.author} />
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center justify-center gap-1 text-iris">
+                    <FaHeart size={14} />
+                    <span className={"text-xs"}>{comment.likes}</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell className="font-medium text-center" colspan={4}>
+                No comments yet
               </TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
       </Table>
     </section>

@@ -1,65 +1,31 @@
-import React from "react";
+import React, { useEffect } from "react";
 import CategoriesTable from "./CategoriesTable";
+import { useDispatch, useSelector } from "react-redux";
+import { getAllCategories } from "@/redux/apiCalls/categoryApiCalls";
+import { useToast } from "@/hooks/use-toast";
 
 function AllCategories() {
-  const categories = [
-    {
-      id: "m5gr84i9",
-      image:
-        "https://revision.codesupply.co/revision/wp-content/uploads/sites/2/2024/09/Travel@2x.webp",
-      title: "travel",
-      posts: 316,
-    },
-    {
-      id: "m5gr84i9",
-      image:
-        "https://revision.codesupply.co/revision/wp-content/uploads/sites/2/2024/09/Travel@2x.webp",
-      title: "travel",
-      posts: 316,
-    },
-    {
-      id: "m5gr84i9",
-      image:
-        "https://revision.codesupply.co/revision/wp-content/uploads/sites/2/2024/09/Travel@2x.webp",
-      title: "travel",
-      posts: 316,
-    },
-    {
-      id: "m5gr84i9",
-      image:
-        "https://revision.codesupply.co/revision/wp-content/uploads/sites/2/2024/09/Travel@2x.webp",
-      title: "travel",
-      posts: 316,
-    },
-    {
-      id: "m5gr84i9",
-      image:
-        "https://revision.codesupply.co/revision/wp-content/uploads/sites/2/2024/09/Travel@2x.webp",
-      title: "travel",
-      posts: 316,
-    },
-    {
-      id: "m5gr84i9",
-      image:
-        "https://revision.codesupply.co/revision/wp-content/uploads/sites/2/2024/09/Travel@2x.webp",
-      title: "travel",
-      posts: 316,
-    },
-    {
-      id: "m5gr84i9",
-      image:
-        "https://revision.codesupply.co/revision/wp-content/uploads/sites/2/2024/09/Travel@2x.webp",
-      title: "travel",
-      posts: 316,
-    },
-    {
-      id: "m5gr84i9",
-      image:
-        "https://revision.codesupply.co/revision/wp-content/uploads/sites/2/2024/09/Travel@2x.webp",
-      title: "travel",
-      posts: 316,
-    },
-  ];
+  const { categories, message, error } = useSelector((state) => state.category);
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(getAllCategories());
+  }, [message]);
+  const {toast} = useToast();
+  useEffect(() => {
+    if (message) {
+      toast({
+        variant: "success",
+        description: message,
+        className: "custom-toast-success",
+      });
+    } else if (error) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: error,
+      });
+    }
+  }, [error, message]);
   return (
     <section>
       <h1 className={"title-dashboard-pages"}>Categories</h1>

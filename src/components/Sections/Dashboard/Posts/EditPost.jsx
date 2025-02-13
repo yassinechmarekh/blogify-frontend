@@ -1,5 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  getSpecificPost,
+  updatePost,
+  updatePostImage,
+} from "@/redux/apiCalls/postApiCalls";
 
 // Componenets
 import {
@@ -24,50 +31,61 @@ import TextEditor from "@/components/Global/TextEditor";
 
 // Icons
 import { FaRegImage } from "react-icons/fa6";
+import { getAllCategories } from "@/redux/apiCalls/categoryApiCalls";
+import { useToast } from "@/hooks/use-toast";
+import { TbLoader2 } from "react-icons/tb";
 
 function EditPost() {
-  const form = useForm();
+  const { singlePost, loading, message, error } = useSelector(
+    (state) => state.post
+  );
+  const { categories } = useSelector((state) => state.category);
+  const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const { slug } = useParams();
+  useEffect(() => {
+    dispatch(getSpecificPost(slug));
+  }, [slug]);
+  const form = useForm({
+    defaultValues: {
+      title: singlePost?.post?.title,
+      category: singlePost?.post?.category._id,
+      content: singlePost?.post?.content,
+    },
+  });
+  useEffect(() => {
+    form.reset({
+      title: singlePost?.post?.title,
+      category: singlePost?.post?.category?._id,
+      content: singlePost?.post?.content,
+    });
+  }, [singlePost, form.reset]);
+  useEffect(() => {
+    dispatch(getAllCategories());
+  }, []);
   const imageForm = useForm();
+  const navigate = useNavigate();
   const onsubmit = (data) => {
     console.log(data);
+    const updatedFields = Object.keys(data).reduce((acc, key) => {
+      if (form.formState.dirtyFields[key]) {
+        acc[key] = data[key];
+      }
+      return acc;
+    }, {});
+    updatedFields.content = data.content;
+    console.log(updatedFields);
+    if (singlePost?.post?._id) {
+      dispatch(updatePost(singlePost?.post?._id, updatedFields));
+      navigate(`/dashboard/${user?.username}/posts`);
+    }
   };
   const submitImageForm = (data) => {
     console.log(data);
+    const formData = new FormData();
+    formData.append("image", data.image);
+    dispatch(updatePostImage(singlePost?.post?._id, formData));
   };
-  const categories = [
-    {
-      title: "Technology",
-      icon: "./icons/tech.webp",
-    },
-    {
-      title: "Travel",
-      icon: "./icons/travel.webp",
-    },
-    {
-      title: "Sport",
-      icon: "./icons/sport.webp",
-    },
-    {
-      title: "Business",
-      icon: "./icons/bussiness.webp",
-    },
-    {
-      title: "Management",
-      icon: "./icons/manage.webp",
-    },
-    {
-      title: "Trends",
-      icon: "./icons/trend.webp",
-    },
-    {
-      title: "Startups",
-      icon: "./icons/startups.webp",
-    },
-    {
-      title: "News",
-      icon: "./icons/news.webp",
-    },
-  ];
   const [editorContent, setEditorContent] = useState("");
   const [imageToUpdate, setImageToUpdate] = useState(null);
 
@@ -76,6 +94,23 @@ function EditPost() {
     console.log("Contenu de l'éditeur : ", content);
     form.setValue("content", editorContent);
   };
+
+  const { toast } = useToast();
+  useEffect(() => {
+    if (message) {
+      toast({
+        variant: "success",
+        description: message,
+        className: "custom-toast-success",
+      });
+    } else if (error) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: error,
+      });
+    }
+  }, [message, error]);
   return (
     <section>
       <h1 className={"title-dashboard-pages"}>Edit Post</h1>
@@ -118,7 +153,7 @@ function EditPost() {
                     src={
                       imageToUpdate
                         ? URL.createObjectURL(imageToUpdate)
-                        : "https://revision.codesupply.co/revision/wp-content/uploads/sites/2/2024/09/demo-image-0042.webp"
+                        : singlePost?.post?.image?.url
                     }
                     alt="post image"
                     className={"w-full max-w-[600px] rounded-2xl"}
@@ -158,11 +193,11 @@ function EditPost() {
           />
           <div className="flex justify-end">
             <button
-              className={
-                "py-1 px-3 bg-iris hover:bg-iris/90 text-white rounded-md text-sm font-semibold capitalize my-transition mt-1"
-              }
+              className={`py-1 px-3 bg-iris hover:bg-iris/90 text-white rounded-md text-sm font-semibold capitalize my-transition mt-1 ${
+                loading && "pointer-events-none opacity-90"
+              }`}
             >
-              update
+              {loading ? <TbLoader2 className={"animate-spin"} /> : "Update"}
             </button>
           </div>
         </form>
@@ -212,18 +247,19 @@ function EditPost() {
                 <FormLabel className={"main-label"}>Category</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value}
+                  className={"main-input"}
                 >
                   <FormControl>
-                    <SelectTrigger className={"text-space-cadet"}>
+                    <SelectTrigger className={"text-space-cadet capitalize"}>
                       <SelectValue placeholder="Select a category of your post" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {categories.map((category, index) => (
+                    {categories.map((category) => (
                       <SelectItem
-                        value={category.title}
-                        key={index}
+                        value={category._id}
+                        key={category._id}
                         className={"capitalize"}
                       >
                         {category.title}
@@ -256,7 +292,10 @@ function EditPost() {
               <FormItem>
                 <FormLabel className={"main-label"}>Content</FormLabel>
                 <FormControl>
-                  <TextEditor onContentChange={handleEditorContentChange} />
+                  <TextEditor
+                    onContentChange={handleEditorContentChange}
+                    oldContent={singlePost?.post?.content}
+                  />
                 </FormControl>
                 {!form.formState.errors.content && (
                   <FormDescription>

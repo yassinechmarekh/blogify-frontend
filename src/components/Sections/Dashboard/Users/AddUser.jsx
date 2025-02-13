@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
 
@@ -23,22 +23,30 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
+// Icons
+import { IoEyeSharp } from "react-icons/io5";
+import { FaEyeSlash } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { createAuthor, getAllUser } from "@/redux/apiCalls/userApiCalls";
+
 function AddUser() {
-  const form = useForm();
+  const form = useForm({
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+    },
+  });
   const [isOpen, setIsOpen] = useState(false);
-  const { toast } = useToast();
+  const [showPassword, setShowPassword] = useState(false);
+  const dispatch = useDispatch();
   const onsubmit = (data) => {
     console.log(data);
-    if (data) {
-      toast({
-        variant: "success",
-        title: "Author created.",
-        description: `Account created with : ${data.email}`,
-        className: "custom-toast-success",
-      });
-    }
+    dispatch(createAuthor(data));
     setIsOpen(false);
+    form.reset();
   };
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -60,6 +68,36 @@ function AddUser() {
             className="grid gap-4 py-4"
             onSubmit={form.handleSubmit(onsubmit)}
           >
+            <FormField
+              control={form.control}
+              name="username"
+              rules={{
+                required: "Username is required to create a new author !",
+              }}
+              render={({ field }) => (
+                <FormItem className="grid grid-cols-4 items-center gap-4">
+                  <FormLabel
+                    htmlFor="username"
+                    className="main-label text-right"
+                  >
+                    Username
+                  </FormLabel>
+                  <div className="col-span-3">
+                    <FormControl>
+                      <Input
+                        id="username"
+                        placeholder="Ex: Jake"
+                        className="main-input bg-white"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage>
+                      {form.formState.errors.username?.message}
+                    </FormMessage>
+                  </div>
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="email"
@@ -110,15 +148,34 @@ function AddUser() {
                     Password
                   </FormLabel>
                   <div className="col-span-3">
-                    <FormControl>
-                      <Input
-                        id="password"
-                        type="password"
-                        placeholder="Create a password"
-                        className="main-input bg-white"
-                        {...field}
-                      />
-                    </FormControl>
+                    <div className="relative">
+                      <FormControl>
+                        <Input
+                          id="password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Create a password"
+                          className="main-input bg-white peer"
+                          {...field}
+                        />
+                      </FormControl>
+                      {showPassword ? (
+                        <FaEyeSlash
+                          size={16}
+                          className={"icon-password"}
+                          onClick={() => {
+                            setShowPassword(false);
+                          }}
+                        />
+                      ) : (
+                        <IoEyeSharp
+                          size={16}
+                          className={"icon-password"}
+                          onClick={() => {
+                            setShowPassword(true);
+                          }}
+                        />
+                      )}
+                    </div>
                     <FormMessage>
                       {form.formState.errors.password?.message}
                     </FormMessage>

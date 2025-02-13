@@ -1,5 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useDispatch, useSelector } from "react-redux";
+import { getAllCategories } from "@/redux/apiCalls/categoryApiCalls";
+import { useToast } from "@/hooks/use-toast";
+import { createPost, getAllPosts } from "@/redux/apiCalls/postApiCalls";
+import { useNavigate } from "react-router-dom";
 
 // Componenets
 import {
@@ -21,52 +26,56 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import TextEditor from "@/components/Global/TextEditor";
+import { TbLoader2 } from "react-icons/tb";
 
 function NewPost() {
+  const postStore = useSelector((state) => state.post);
+  const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const form = useForm();
   const onsubmit = (data) => {
     console.log(data);
+    const formData = new FormData();
+    formData.append("image", data.image);
+    formData.append("title", data.title);
+    formData.append("content", data.content);
+    formData.append("category", data.category);
+
+    dispatch(createPost(formData));
   };
-  const categories = [
-    {
-      title: "Technology",
-      icon: "./icons/tech.webp",
-    },
-    {
-      title: "Travel",
-      icon: "./icons/travel.webp",
-    },
-    {
-      title: "Sport",
-      icon: "./icons/sport.webp",
-    },
-    {
-      title: "Business",
-      icon: "./icons/bussiness.webp",
-    },
-    {
-      title: "Management",
-      icon: "./icons/manage.webp",
-    },
-    {
-      title: "Trends",
-      icon: "./icons/trend.webp",
-    },
-    {
-      title: "Startups",
-      icon: "./icons/startups.webp",
-    },
-    {
-      title: "News",
-      icon: "./icons/news.webp",
-    },
-  ];
+  useEffect(() => {
+    if (postStore.error) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: postStore.error,
+      });
+    } else if(postStore.message){
+      navigate(`/dashboard/${user?.username}/posts`);
+    }
+  }, [postStore.error, postStore.message]);
+  const categoryStore = useSelector((state) => state.category);
+  useEffect(() => {
+    dispatch(getAllCategories());
+  }, []);
+  useEffect(() => {
+    if (categoryStore.error) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: categoryStore.error,
+      });
+    }
+  }, [categoryStore.error]);
   const [editorContent, setEditorContent] = useState("");
 
   const handleEditorContentChange = (content) => {
     setEditorContent(content);
-    console.log("Contenu de l'éditeur : ", content);
-    form.setValue("content", editorContent);
+    console.log("Contenu de l'éditeur : ", editorContent);
+    form.setValue("content", content);
+    console.log("hawa:", form.getValues("content"));
   };
   return (
     <section>
@@ -171,10 +180,10 @@ function NewPost() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {categories.map((category, index) => (
+                      {categoryStore.categories?.map((category) => (
                         <SelectItem
-                          value={category.title}
-                          key={index}
+                          value={category._id}
+                          key={category._id}
                           className={"capitalize"}
                         >
                           {category.title}
@@ -208,9 +217,7 @@ function NewPost() {
               <FormItem>
                 <FormLabel className={"main-label"}>Content</FormLabel>
                 <FormControl>
-                  <TextEditor
-                    onContentChange={handleEditorContentChange}
-                  />
+                  <TextEditor onContentChange={handleEditorContentChange} />
                 </FormControl>
                 {!form.formState.errors.content && (
                   <FormDescription>
@@ -223,7 +230,16 @@ function NewPost() {
               </FormItem>
             )}
           />
-          <Button type="submit">Publish</Button>
+          <Button
+            type="submit"
+            className={`${postStore.loading && "pointer-events-none opacity-90"}`}
+          >
+            {postStore.loading ? (
+              <TbLoader2 className={"animate-spin"} />
+            ) : (
+              "Publish"
+            )}
+          </Button>
         </form>
       </Form>
     </section>

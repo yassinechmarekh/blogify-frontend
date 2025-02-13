@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 // Components
 import {
@@ -21,8 +21,12 @@ import {
 import { FaHeart } from "react-icons/fa6";
 import { Link } from "react-router-dom";
 import { CalendarIcon } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { getLikedPostsByUserPaginate } from "@/redux/apiCalls/postApiCalls";
+import { useToast } from "@/hooks/use-toast";
+import HoverUser from "@/components/Global/HoverUser";
 
-const likedPosts = [
+const likedPosts1 = [
   {
     author: {
       username: "Erling",
@@ -116,6 +120,23 @@ const likedPosts = [
 ];
 
 function LikedPosts() {
+  const { likedPosts, error } = useSelector((state) => state.post);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageNumber = 12;
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(getLikedPostsByUserPaginate(pageNumber, currentPage));
+  }, [pageNumber, currentPage]);
+  const { toast } = useToast();
+  useEffect(() => {
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: error,
+      });
+    }
+  }, [error]);
   return (
     <section>
       <h1 className={"title-dashboard-pages"}>Liked Posts</h1>
@@ -128,67 +149,56 @@ function LikedPosts() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {likedPosts.map((post, index) => (
-            <TableRow key={index}>
+          {likedPosts?.posts?.map((post) => (
+            <TableRow key={post._id}>
               <TableCell>
-                <HoverCard>
-                  <HoverCardTrigger asChild>
-                    <Button variant="link" className={"text-space-cadet"}>
-                      @{post.author.username}
-                    </Button>
-                  </HoverCardTrigger>
-                  <HoverCardContent className="w-80">
-                    <div className="flex justify-between space-x-4">
-                      <Avatar>
-                        <AvatarImage src={post.author.profile} />
-                        <AvatarFallback>VC</AvatarFallback>
-                      </Avatar>
-                      <div className="space-y-1">
-                        <h4 className="text-sm font-semibold">
-                          @{post.author.username}
-                        </h4>
-                        <p className="text-sm">{post.author.bio}</p>
-                        <div className="flex items-center pt-2">
-                          <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />{" "}
-                          <span className="text-xs text-muted-foreground">
-                            Joined December 2021
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </HoverCardContent>
-                </HoverCard>
+                <HoverUser user={post.author} />
               </TableCell>
               <TableCell>
                 <Link
-                  className={"hover:text-iris hover:underline my-transition"}
+                  to={`/posts/${post.slug}`}
+                  className={
+                    "hover:text-iris hover:underline capitalize my-transition"
+                  }
                 >
-                  {post.post}
+                  {post.title}
                 </Link>
               </TableCell>
-              <TableCell className="flex items-center gap-1">
-                <FaHeart size={16} />
-                <span>{post.likes}</span>
+              <TableCell>
+                <div className="flex items-center gap-1">
+                  <FaHeart size={16} />
+                  <span>{post.likes.length}</span>
+                </div>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
       <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          12 of{" "}
-          150 row(s) selected.
-        </div>
         <div className="space-x-2 text-space-cadet">
           <Button
             variant="outline"
             size="sm"
+            className={`${
+              currentPage === 1 ? "pointer-events-none" : "bg-white text-iris"
+            }`}
+            onClick={() => {
+              setCurrentPage(currentPage - 1);
+            }}
           >
             Previous
           </Button>
           <Button
             variant="outline"
             size="sm"
+            className={`${
+              currentPage === Math.ceil(likedPosts?.total / pageNumber)
+                ? "pointer-events-none"
+                : "bg-white text-iris"
+            }`}
+            onClick={() => {
+              setCurrentPage(currentPage + 1);
+            }}
           >
             Next
           </Button>

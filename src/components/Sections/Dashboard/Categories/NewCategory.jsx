@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
 
@@ -22,6 +22,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  createCategory,
+  getAllCategories,
+} from "@/redux/apiCalls/categoryApiCalls";
+import { useNavigate } from "react-router-dom";
 
 function NewCategory() {
   const form = useForm({
@@ -29,50 +35,73 @@ function NewCategory() {
       image: null,
     },
   });
-  const { toast } = useToast();
+  const dispatch = useDispatch();
+  const { message, error } = useSelector((state) => state.category);
+  const navigate = useNavigate();
   const onsubmit = (data) => {
     console.log(data);
-    if (data) {
+    const formData = new FormData();
+    formData.append("image", data.image);
+    formData.append("title", data.title);
+    formData.append("description", data.description);
+    if (data.icon) {
+      formData.append("icon", data.icon);
+    }
+
+    dispatch(createCategory(formData));
+    if (!error) {
+      navigate("/dashboard/categories/all");
+    }
+  };
+  const { toast } = useToast();
+  useEffect(() => {
+    if (message) {
       toast({
         variant: "success",
         title: "Category created.",
-        description: `${data.title} category has created succesfully !`,
+        description: message,
         className: "custom-toast-success",
       });
+    } else if (error) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: error,
+      });
     }
-  };
+  }, [error, message]);
   const icons = [
     {
       title: "Technology",
-      icon: "./icons/tech.webp",
+      icon: "https://res.cloudinary.com/dcz9jqkbz/image/upload/v1737305327/tech_srfr8g.webp",
     },
     {
       title: "Travel",
-      icon: "./icons/travel.webp",
+      icon: "https://res.cloudinary.com/dcz9jqkbz/image/upload/v1737305327/travel_2x-1_d2mjqv.webp",
     },
     {
       title: "Sport",
-      icon: "./icons/sport.webp",
+      icon: "https://res.cloudinary.com/dcz9jqkbz/image/upload/v1737305327/sport_kgpyb2.webp",
     },
     {
       title: "Business",
-      icon: "./icons/bussiness.webp",
+      icon: "https://res.cloudinary.com/dcz9jqkbz/image/upload/v1737305327/bussiness_j9tqxp.webp",
     },
     {
       title: "Management",
-      icon: "./icons/manage.webp",
+      icon: "https://res.cloudinary.com/dcz9jqkbz/image/upload/v1737305327/manage_uj3w7m.webp",
     },
     {
       title: "Trends",
-      icon: "./icons/trend.webp",
+      icon: "https://res.cloudinary.com/dcz9jqkbz/image/upload/v1737305327/trand_c1q5ya.webp",
     },
     {
       title: "Startups",
-      icon: "./icons/startups.webp",
+      icon: "https://res.cloudinary.com/dcz9jqkbz/image/upload/v1737305327/start_2x_kqjtxt.webp",
     },
     {
       title: "News",
-      icon: "./icons/news.webp",
+      icon: "https://res.cloudinary.com/dcz9jqkbz/image/upload/v1737305327/news_2x-1_swgp8i.webp",
     },
   ];
   return (
@@ -168,7 +197,9 @@ function NewCategory() {
               name="icon"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className={"main-label"}>Icon</FormLabel>
+                  <FormLabel className={"main-label"}>
+                    Icon (Optional)
+                  </FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -184,7 +215,7 @@ function NewCategory() {
                         <SelectItem key={index} value={icon.icon}>
                           <div className={"flex items-center gap-1"}>
                             <img
-                              src="https://revision.codesupply.co/revision/wp-content/uploads/sites/2/2024/09/tech@2x.webp"
+                              src={icon.icon}
                               alt={icon.title}
                               className={"w-6 h-6"}
                             />

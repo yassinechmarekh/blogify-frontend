@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Mark } from "@tiptap/core";
 
-const TextEditor = ({ onContentChange }) => {
+const TextEditor = ({ onContentChange, oldContent }) => {
   const [content, setContent] = useState("");
 
   const underline = Mark.create({
@@ -48,6 +48,16 @@ const TextEditor = ({ onContentChange }) => {
       };
     },
   });
+
+  useEffect(() => {
+    setContent(oldContent);
+  }, [oldContent]);
+  useEffect(() => {
+    console.log("Updated content:", content);
+    if (editor && content) {
+      editor.commands.setContent(content, false);
+    }
+  }, [content]);
 
   const editor = useEditor({
     extensions: [

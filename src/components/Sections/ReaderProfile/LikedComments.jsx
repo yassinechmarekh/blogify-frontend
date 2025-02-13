@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 // Components
 import {
@@ -15,50 +15,30 @@ import {
 // Icons
 import { FaHeart } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { getLikedComments } from "@/redux/apiCalls/commentApiCalls";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import HoverUser from "@/components/Global/HoverUser";
 
 function LikedComments() {
-  const likedComments = [
-    {
-      comment:
-        "I’ve been following your blog for a while now, and this post might be your best one yet!",
-      owner: "Ethan Caldwell",
-      post: "The Future of Work: Tech and Remote Trends",
-      author: "Ethan Caldwell",
-      likes: 10,
-    },
-    {
-      comment:
-        "I’ve been following your blog for a while now, and this post might be your best one yet!",
-      owner: "Ethan Caldwell",
-      post: "The Future of Work: Tech and Remote Trends",
-      author: "Ethan Caldwell",
-      likes: 10,
-    },
-    {
-      comment:
-        "I’ve been following your blog for a while now, and this post might be your best one yet!",
-      owner: "Ethan Caldwell",
-      post: "The Future of Work: Tech and Remote Trends",
-      author: "Ethan Caldwell",
-      likes: 10,
-    },
-    {
-      comment:
-        "I’ve been following your blog for a while now, and this post might be your best one yet!",
-      owner: "Ethan Caldwell",
-      post: "The Future of Work: Tech and Remote Trends",
-      author: "Ethan Caldwell",
-      likes: 10,
-    },
-    {
-      comment:
-        "I’ve been following your blog for a while now, and this post might be your best one yet!",
-      owner: "Ethan Caldwell",
-      post: "The Future of Work: Tech and Remote Trends",
-      author: "Ethan Caldwell",
-      likes: 10,
-    },
-  ];
+  const { likedComments, error } = useSelector((state) => state.comment);
+  const dispatch = useDispatch();
+  const commentNumber = 12;
+  const [currentPage, setCurrentPage] = useState(1);
+  useEffect(() => {
+    dispatch(getLikedComments(commentNumber, currentPage));
+  }, [currentPage]);
+  const { toast } = useToast();
+  useEffect(() => {
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: error,
+      });
+    }
+  }, [error]);
   return (
     <section>
       <div className={"pb-4 border-b border-gray-300 mb-4"}>
@@ -76,38 +56,81 @@ function LikedComments() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {likedComments.map((item, index) => (
-            <TableRow key={index}>
-              <TableCell className="font-medium">{item.comment}</TableCell>
-              <TableCell>
-                <Link
-                  className={"hover:text-iris hover:underline my-transition"}
-                >
-                  {item.owner}
-                </Link>
-              </TableCell>
-              <TableCell>
-                <Link
-                  className={"hover:text-iris hover:underline my-transition"}
-                >
-                  {item.post}
-                </Link>
-              </TableCell>
-              <TableCell>
-                <Link
-                  className={"hover:text-iris hover:underline my-transition"}
-                >
-                  {item.author}
-                </Link>
-              </TableCell>
-              <TableCell className="flex items-center gap-1 text-iris">
-                <FaHeart size={14} />
-                <span className={"text-xs"}>{item.likes}</span>
+          {likedComments?.total > 0 ? (
+            likedComments?.comments?.map((comment) => (
+              <TableRow key={comment._id}>
+                <TableCell className="font-medium">{comment.content}</TableCell>
+                <TableCell>
+                  <Link
+                    className={"hover:text-iris hover:underline my-transition"}
+                  >
+                    {comment.user.username}
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  <Link
+                    tp={`/posts/${comment.postId.slug}`}
+                    className={"hover:text-iris hover:underline my-transition"}
+                  >
+                    {comment.postId.title}
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  <HoverUser user={comment.postId.author} />
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-1 text-iris">
+                    <FaHeart size={14} />
+                    <span className={"text-xs"}>{comment.likes.length}</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell className="font-medium text-center" colspan={5}>
+                No liked comments yet
               </TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
       </Table>
+      {likedComments?.total > 0 && (
+        <div className="flex items-center justify-end space-x-2 py-4">
+          <div className="space-x-2 text-space-cadet">
+            <Button
+              variant="outline"
+              size="sm"
+              className={currentPage === 1 && "pointer-events-none opacity-60"}
+              onClick={() => {
+                if (currentPage !== 1) {
+                  setCurrentPage(currentPage - 1);
+                }
+              }}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className={
+                currentPage ===
+                  Math.ceil(likedComments.total / commentNumber) &&
+                "pointer-events-none opacity-60"
+              }
+              onClick={() => {
+                if (
+                  currentPage !== Math.ceil(likedComments.total / commentNumber)
+                ) {
+                  setCurrentPage(currentPage + 1);
+                }
+              }}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

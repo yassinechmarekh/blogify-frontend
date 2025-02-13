@@ -1,8 +1,12 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import React from "react";
+import { useToast } from "@/hooks/use-toast";
+import { getLimitUsers } from "@/redux/apiCalls/userApiCalls";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 
 function UserTable() {
-  const users = [
+  const users1 = [
     {
       username: "Olivia Martin",
       profile: "https://github.com/shadcn.png",
@@ -34,19 +38,34 @@ function UserTable() {
       role: "Reader",
     },
   ];
+  const {usersLimit, error} = useSelector(state => state.user);
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(getLimitUsers(5));
+  },[]);
+  const {toast} = useToast();
+  useEffect(() => {
+    if(error){
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: error,
+      });
+    }
+  },[error])
   return (
-    <div className="space-y-8">
-      {users.map((user, index) => (
-        <div className="flex items-center flex-wrap" key={index}>
+    <div className="space-y-5">
+      {usersLimit.users?.map((user) => (
+        <div className="flex items-center flex-wrap" key={user._id}>
           <Avatar className="h-9 w-9">
-            <AvatarImage src={user.profile} alt="Avatar" />
-            <AvatarFallback>OM</AvatarFallback>
+            <AvatarImage src={user.profilePhoto.url} alt="Avatar" />
+            <AvatarFallback>{user.username[0].toUpperCase()}</AvatarFallback>
           </Avatar>
           <div className="ml-4 space-y-1">
-            <p className="text-sm font-medium leading-none">{user.username}</p>
+            <Link to={`/users/${user._id}`} className="text-sm font-medium capitalize leading-none hover:text-iris hover:underline my-transition">{user.username}</Link>
             <p className="text-sm text-muted-foreground">{user.email}</p>
           </div>
-          <div className="ml-auto font-medium">{user.role}</div>
+          <div className="ml-auto font-medium capitalize">{user.status}</div>
         </div>
       ))}
     </div>

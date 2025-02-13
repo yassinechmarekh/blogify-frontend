@@ -4,6 +4,8 @@ import { useToast } from "@/hooks/use-toast";
 
 // Components
 import { ToastAction } from "@/components/ui/toast";
+import { addEmailToNewsletter } from "@/redux/apiCalls/newsletterApiCalls";
+import { useDispatch, useSelector } from "react-redux";
 
 function Newsletter() {
   const {
@@ -12,16 +14,19 @@ function Newsletter() {
     setValue,
     formState: { errors },
   } = useForm();
+  const { error, message } = useSelector((state) => state.newsletter);
+  const dispatch = useDispatch();
   const onsubmit = (data) => {
     console.log(data);
-    if (data) {
-      toast({
-        variant: "success",
-        title: "Email added succussfully.",
-        description: "Your email is added to our newsletter !",
-        className: "custom-toast-success"
-      });
-    }
+    dispatch(addEmailToNewsletter(data));
+    // if (data) {
+    //   toast({
+    //     variant: "success",
+    //     title: "Email added succussfully.",
+    //     description: "Your email is added to our newsletter !",
+    //     className: "custom-toast-success"
+    //   });
+    // }
   };
   const { toast } = useToast();
   const emailRef = useRef(null);
@@ -42,8 +47,25 @@ function Newsletter() {
       });
     }
   }, [errors.email]);
+  useEffect(() => {
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: error,
+      });
+    } else if (message) {
+      toast({
+        variant: "succes",
+        description: message,
+        className: "custom-toast-success",
+      });
+    }
+  }, [error, message]);
   return (
-    <div className={"py-20 w-full sm:w-3/4 md:w-3/5 xl:w-2/5 mx-auto text-center"}>
+    <div
+      className={"py-20 w-full sm:w-3/4 md:w-3/5 xl:w-2/5 mx-auto text-center"}
+    >
       <div className="container">
         <h1 className={"text-3xl text-space-cadet font-semibold"}>
           Subscribe to our Newsletter

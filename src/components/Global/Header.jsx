@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { logoutUser } from "@/redux/apiCalls/authApiCalls";
 
 // Components
 import Logo from "./Logo";
@@ -15,6 +17,22 @@ import { MdOutlineLogout } from "react-icons/md";
 function Header() {
   const [seachOpen, setSearchOpen] = useState(false);
   const [menuOpen, setmenuOpen] = useState(false);
+  const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const logoutHandler = () => {
+    dispatch(logoutUser());
+    navigate("/");
+  };
+  const profileLink = () => {
+    if (user?.status === "admin") {
+      return "/dashboard/admin/home";
+    } else if (user?.status === "author") {
+      return "/dashboard/author/home";
+    } else {
+      return `/${user?.username}/profile`;
+    }
+  };
   return (
     <header className="py-3 relative">
       <div className="container">
@@ -65,33 +83,42 @@ function Header() {
                 onClick={() => setSearchOpen(true)}
               />
             </span>
-            <Link to={"/login"} className={"hidden md:block login-btn"}>
-              Login
-            </Link>
-            <Link to={"/register"} className={"hidden md:block signup-btn"}>
-              Sign Up
-            </Link>
-            {/* <div className={"flex items-center gap-1 lg:gap-2"}>
-              <Link>
-                <Avatar className={'w-8 h-8'}>
-                  <AvatarImage src="https://github.com/shadcn.png" />
-                  <AvatarFallback>CN</AvatarFallback>
-                </Avatar>
-              </Link>
-              <div className={"hidden lg:flex flex-col"}>
-                <Link
-                  className={
-                    "text-space-cadet text-sm hover:text-iris hover:underline font-medium capitalize"
-                  }
-                >
-                  Yassine
+            {user ? (
+              <div className={"flex items-center gap-1 lg:gap-2"}>
+                <Link to={profileLink()}>
+                  <Avatar className={"w-8 h-8"}>
+                    <AvatarImage src={user?.profilePhoto} />
+                    <AvatarFallback>{user?.username[0]}</AvatarFallback>
+                  </Avatar>
                 </Link>
-                <span className={"text-xs"}>yassine@gmail.com</span>
+                <div className={"hidden lg:flex flex-col"}>
+                  <Link
+                    to={profileLink()}
+                    className={
+                      "text-space-cadet text-sm hover:text-iris hover:underline font-medium capitalize"
+                    }
+                  >
+                    {user?.username}
+                  </Link>
+                  <span className={"text-xs"}>{user?.email}</span>
+                </div>
+                <button
+                  onClick={logoutHandler}
+                  className={"login-btn p-2 hover:text-iris"}
+                >
+                  <MdOutlineLogout size={22} />
+                </button>
               </div>
-              <button className={"login-btn p-2 hover:text-iris"}>
-                <MdOutlineLogout size={22} />
-              </button>
-            </div> */}
+            ) : (
+              <>
+                <Link to={"/login"} className={"hidden md:block login-btn"}>
+                  Login
+                </Link>
+                <Link to={"/register"} className={"hidden md:block signup-btn"}>
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

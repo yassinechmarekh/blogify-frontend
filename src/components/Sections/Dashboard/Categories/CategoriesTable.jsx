@@ -48,8 +48,18 @@ import {
 import { FaTrashAlt } from "react-icons/fa";
 import { MdArticle } from "react-icons/md";
 import EditCategory from "./EditCategory";
+import { useDispatch } from "react-redux";
+import {
+  deleteCategory,
+  deleteManyCategories,
+} from "@/redux/apiCalls/categoryApiCalls";
 
 const columns = [
+  {
+    accessorKey: "_id",
+    header: "ID",
+    enableHiding: true,
+  },
   {
     id: "select",
     header: ({ table }) => (
@@ -75,13 +85,18 @@ const columns = [
   {
     accessorKey: "image",
     header: "Image",
-    cell: ({ row }) => (
-      <img
-        className="w-12 h-12 rounded-xl"
-        src={row.getValue("image")}
-        alt={row.getValue("title")}
-      />
-    ),
+    cell: ({ row }) => {
+      const { slug } = row.original;
+      return (
+        <Link to={`/categories/${slug}`}>
+          <img
+            className="w-12 h-12 rounded-xl"
+            src={row.getValue("image")}
+            alt={row.getValue("title")}
+          />
+        </Link>
+      );
+    },
   },
   {
     accessorKey: "title",
@@ -96,15 +111,31 @@ const columns = [
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <Link className="hover:text-iris hover:underline my-transition capitalize">
-        {row.getValue("title")}
-      </Link>
-    ),
+    cell: ({ row }) => {
+      const { slug } = row.original;
+      return (
+        <Link
+          to={`/categories/${slug}`}
+          className="hover:text-iris hover:underline my-transition capitalize"
+        >
+          {row.getValue("title")}
+        </Link>
+      );
+    },
   },
   {
     accessorKey: "posts",
-    header: () => <div>Posts</div>,
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Posts
+          <ArrowUpDown />
+        </Button>
+      );
+    },
     cell: ({ row }) => {
       return (
         <div className="flex items-center gap-2">
@@ -119,6 +150,8 @@ const columns = [
     cell: ({ row }) => {
       const [isModalOpen, setIsModalOpen] = React.useState(false);
       const [openEdit, setOpenEdit] = React.useState(false);
+      const category = row.original;
+      const dispatch = useDispatch();
       return (
         <>
           <DropdownMenu>
@@ -131,7 +164,9 @@ const columns = [
             <DropdownMenuContent align="end" className={"bg-white"}>
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>View Category</DropdownMenuItem>
+              <Link to={`/categories/${category.slug}`}>
+                <DropdownMenuItem>View Category</DropdownMenuItem>
+              </Link>
               <DropdownMenuItem
                 onClick={() => {
                   setOpenEdit(true);
@@ -169,13 +204,22 @@ const columns = [
                 >
                   Cancel
                 </AlertDialogCancel>
-                <AlertDialogAction className={"bg-red-600 hover:bg-red-700"}>
+                <AlertDialogAction
+                  className={"bg-red-600 hover:bg-red-700"}
+                  onClick={() => {
+                    dispatch(deleteCategory(category._id));
+                  }}
+                >
                   Continue
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-          <EditCategory openEdit={openEdit} setOpenEdit={setOpenEdit} />
+          <EditCategory
+            openEdit={openEdit}
+            setOpenEdit={setOpenEdit}
+            category={category}
+          />
         </>
       );
     },
@@ -185,7 +229,9 @@ const columns = [
 function CategoriesTable({ data }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
-  const [columnVisibility, setColumnVisibility] = React.useState({});
+  const [columnVisibility, setColumnVisibility] = React.useState({
+    _id: false,
+  });
   const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({
@@ -206,6 +252,16 @@ function CategoriesTable({ data }) {
       rowSelection,
     },
   });
+
+  const categoriesSelectedIds = Object.keys(rowSelection).map((key) =>
+    table.getRowModel().rows[key].getValue("_id")
+  );
+
+  const categoriesSelectedTiltles = Object.keys(rowSelection).map((key) =>
+    table.getRowModel().rows[key].getValue("title")
+  );
+
+  const dispatch = useDispatch();
 
   return (
     <div className="w-full text-space-cadet">
@@ -232,7 +288,13 @@ function CategoriesTable({ data }) {
                 </AlertDialogTitle>
                 <AlertDialogDescription>
                   You really want to delete the following categories :{" "}
-                  {JSON.stringify(rowSelection)}
+                  <ul className={"list-disc ml-8 mt-2"}>
+                    {categoriesSelectedTiltles.map((title) => (
+                      <li className={"capitalize font-medium text-iris"}>
+                        {title}
+                      </li>
+                    ))}
+                  </ul>
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -243,7 +305,13 @@ function CategoriesTable({ data }) {
                 >
                   Cancel
                 </AlertDialogCancel>
-                <AlertDialogAction className={"bg-red-600 hover:bg-red-700"}>
+                <AlertDialogAction
+                  className={"bg-red-600 hover:bg-red-700"}
+                  onClick={() => {
+                    dispatch(deleteManyCategories(categoriesSelectedIds));
+                    setRowSelection([]);
+                  }}
+                >
                   Continue
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -258,7 +326,7 @@ function CategoriesTable({ data }) {
                 Columns <ChevronDown />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className={'bg-white'}>
+            <DropdownMenuContent align="end" className={"bg-white"}>
               {table
                 .getAllColumns()
                 .filter((column) => column.getCanHide())

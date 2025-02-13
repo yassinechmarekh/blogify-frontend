@@ -141,13 +141,13 @@
     @apply w-full bg-gradient-to-t from-iris to-tropical-indigo hover:bg-gradient-to-b my-transition;
   }
   .custom-toast-success {
-    @apply bg-iris hover:bg-tropical-indigo text-white my-transition;
+    @apply bg-iris hover:bg-iris/90 text-white my-transition;
   }
   .category-tag {
     @apply py-1 px-3 bg-white text-space-cadet hover:text-tropical-indigo font-medium capitalize rounded-lg shadow-md hover:shadow-tropical-indigo my-transition;
   }
   .comment-input {
-    @apply border-gray-500 text-gray-600 placeholder:text-sm sm:placeholder:text-base focus-visible:border-tropical-indigo focus-visible:placeholder:text-iris focus-visible:text-iris;
+    @apply border-gray-500 text-gray-600 placeholder:text-xs sm:placeholder:text-sm focus-visible:border-tropical-indigo focus-visible:placeholder:text-iris focus-visible:text-iris;
   }
   .comment-label {
     @apply text-gray-500;
@@ -156,7 +156,7 @@
     @apply bg-gradient-to-t from-iris to-tropical-indigo shadow-lg hover:shadow-iris/50 my-transition;
   }
   .reader-profile-menu {
-    @apply py-2 px-4 rounded-lg;
+    @apply py-2 px-4 rounded-lg capitalize;
   }
   .reader-profile-menu-inactive {
     @apply hover:text-iris hover:underline my-transition;
@@ -168,7 +168,7 @@
     @apply text-space-cadet;
   }
   .main-input {
-    @apply border-gray-500 text-space-cadet placeholder:text-gray-500 focus-visible:border-tropical-indigo focus-visible:placeholder:text-iris my-transition;
+    @apply border-gray-500 text-space-cadet placeholder:text-gray-500 focus-visible:border-tropical-indigo focus-visible:placeholder:text-iris focus-visible:text-iris my-transition;
   }
   .title-subpage-profile-reader {
     @apply text-lg text-space-cadet font-medium capitalize;
@@ -177,6 +177,21 @@
     @apply mb-4 text-xl text-space-cadet font-semibold capitalize;
   }
   .text-editor div {
-    @apply outline-none p-3 border rounded-lg focus-visible:border-iris h-48;
+    @apply outline-none p-3 border rounded-lg focus-visible:border-iris min-h-48;
+  }
+  .icon-password{
+    @apply absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-iris peer-focus-visible:text-iris;
+  }
+  .rich-text h1{
+    @apply text-2xl text-space-cadet mt-2;
+  }
+  .rich-text h2{
+    @apply text-xl text-space-cadet mt-1;
+  }
+  .rich-text h3{
+    @apply text-xl text-space-cadet mt-1;
+  }
+  .rich-text ul{
+    @apply list-disc ml-6;
   }
 }

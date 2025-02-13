@@ -29,6 +29,10 @@ import AddUser from "./AddUser";
 
 // Icons
 import { ChevronDown } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import { getAllAuthors, getAllUser } from "@/redux/apiCalls/userApiCalls";
 
 function UsersTable({ data, columns, addUser }) {
   const [sorting, setSorting] = React.useState([]);
@@ -54,6 +58,29 @@ function UsersTable({ data, columns, addUser }) {
       rowSelection,
     },
   });
+
+  const { toast } = useToast();
+  const dispatch = useDispatch();
+  const { error, message } = useSelector((state) => state.user);
+
+  useEffect(() => {
+    if (message) {
+      toast({
+        variant: "success",
+        title: "Success Message.",
+        description: message,
+        className: "custom-toast-success",
+      });
+      dispatch(getAllUser());
+      dispatch(getAllAuthors());
+    } else if (error) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: error,
+      });
+    }
+  }, [message, error]);
 
   return (
     <div className="w-full text-space-cadet">

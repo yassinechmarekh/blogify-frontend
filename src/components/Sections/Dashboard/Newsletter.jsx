@@ -1,3 +1,11 @@
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addEmailToNewsletter,
+  deleteEmailFormNewsletter,
+  deleteManyEmailsFromNewsletter,
+  getEmailFromNewsletter,
+  updateNewsletter,
+} from "@/redux/apiCalls/newsletterApiCalls";
 import * as React from "react";
 import {
   flexRender,
@@ -8,7 +16,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -43,61 +50,33 @@ import {
 import { FaTrashAlt } from "react-icons/fa";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-
-const data = [
-  {
-    id: "m5gr84i9",
-    email: "ken99@yahoo.com",
-    notification: true,
-  },
-  {
-    id: "m5gr84i9",
-    email: "Abe45@gmail.com",
-    notification: true,
-  },
-  {
-    id: "m5gr84i9",
-    email: "Monserrat44@gmail.com",
-    notification: true,
-  },
-  {
-    id: "m5gr84i9",
-    email: "Silas22@gmail.com",
-    notification: false,
-  },
-  {
-    id: "m5gr84i9",
-    email: "ken99@yahoo.com",
-    notification: false,
-  },
-  {
-    id: "m5gr84i9",
-    email: "Silas22@gmail.com",
-    notification: false,
-  },
-  {
-    id: "m5gr84i9",
-    email: "ken99@yahoo.com",
-    notification: true,
-  },
-  {
-    id: "m5gr84i9",
-    email: "Monserrat44@gmail.com",
-    notification: true,
-  },
-  {
-    id: "m5gr84i9",
-    email: "ken99@yahoo.com",
-    notification: false,
-  },
-  {
-    id: "m5gr84i9",
-    email: "Silas22@gmail.com",
-    notification: true,
-  },
-];
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useForm } from "react-hook-form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
 
 const columns = [
+  {
+    accessorKey: "_id",
+    header: "ID",
+    enableHiding: true,
+  },
   {
     id: "select",
     header: ({ table }) => (
@@ -139,10 +118,20 @@ const columns = [
     accessorKey: "notification",
     header: () => <div className="">Notification</div>,
     cell: ({ row }) => {
+      const { _id, notification } = row.original;
+      const dispatch = useDispatch();
       return (
         <div className="flex items-center space-x-2">
-          <Switch id="notification" checked={row.getValue("notification")} />
-          <Label htmlFor="notification">{row.getValue('notification') ? 'Active' : 'Inactive'}</Label>
+          <Switch
+            id="notification"
+            checked={notification}
+            onClick={() => {
+              dispatch(updateNewsletter(_id));
+            }}
+          />
+          <Label htmlFor="notification">
+            {notification ? "Active" : "Inactive"}
+          </Label>
         </div>
       );
     },
@@ -151,7 +140,8 @@ const columns = [
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
-
+      const { _id, email } = row.original;
+      const dispatch = useDispatch();
       return (
         <AlertDialog>
           <AlertDialogTrigger
@@ -165,8 +155,9 @@ const columns = [
                 Are you absolutely sure?
               </AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete your
-                account and remove your data from our servers.
+                You really want to delete this email{" "}
+                <span className={"font-medium text-iris"}>{email}</span> from
+                your newsletter ?
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -177,7 +168,13 @@ const columns = [
               >
                 Cancel
               </AlertDialogCancel>
-              <AlertDialogAction className={"bg-red-600 hover:bg-red-700"}>
+              <AlertDialogAction
+                className={"bg-red-600 hover:bg-red-700"}
+                onClick={() => {
+                  console.log(_id);
+                  dispatch(deleteEmailFormNewsletter(_id));
+                }}
+              >
                 Continue
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -189,13 +186,20 @@ const columns = [
 ];
 
 function Newsletter() {
+  const { emails, message, error } = useSelector((state) => state.newsletter);
+  const dispatch = useDispatch();
+  React.useEffect(() => {
+    dispatch(getEmailFromNewsletter());
+  }, [message]);
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
-  const [columnVisibility, setColumnVisibility] = React.useState({});
+  const [columnVisibility, setColumnVisibility] = React.useState({
+    _id: false,
+  });
   const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({
-    data,
+    data: emails,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -213,6 +217,48 @@ function Newsletter() {
     },
   });
 
+  const form = useForm();
+  const onsubmit = (data) => {
+    console.log(data);
+    dispatch(addEmailToNewsletter(data));
+    setAddOpen(false);
+    form.setValue("email", "");
+  };
+  const [addOpen, setAddOpen] = React.useState(false);
+
+  const { toast } = useToast();
+  React.useEffect(() => {
+    if (message) {
+      toast({
+        variant: "success",
+        description: message,
+        className: "custom-toast-success",
+      });
+    } else if (error) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: error,
+      });
+    }
+  }, [error, message]);
+
+  const emailsSelectedIds = Object.keys(rowSelection).map((key) =>
+    // table.getRowModel().rows[key].getValue("_id")
+    table
+      .getRowModel()
+      .rows.filter((item) => item.id === key)[0]
+      .getValue("_id")
+  );
+
+  const emailsSelected = Object.keys(rowSelection).map((key) =>
+    // table.getRowModel().rows[key].getValue("email")
+    table
+      .getRowModel()
+      .rows.filter((item) => item.id === key)[0]
+      .getValue("email")
+  );
+
   return (
     <section>
       <h1 className={"title-dashboard-pages"}>Newsletter</h1>
@@ -227,6 +273,67 @@ function Newsletter() {
             className="max-w-sm bg-white main-input"
           />
           <div className="flex gap-4">
+            <Dialog open={addOpen} onOpenChange={setAddOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  onClick={() => {
+                    setAddOpen(true);
+                  }}
+                >
+                  Add One
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px] gap-1">
+                <DialogHeader>
+                  <DialogTitle>Edit profile</DialogTitle>
+                  <DialogDescription>
+                    Make changes to your profile here. Click save when you're
+                    done.
+                  </DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onsubmit)}>
+                    <div className="grid gap-4 py-4">
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        rules={{
+                          required:
+                            "Email is required to added in newsletter !",
+                          pattern: {
+                            value:
+                              /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
+                            message: "Enter a valid email !",
+                          },
+                        }}
+                        render={({ field }) => (
+                          <FormItem className="grid grid-cols-4 items-center gap-4">
+                            <FormLabel className="text-right main-label">
+                              Email
+                            </FormLabel>
+                            <div className="col-span-3">
+                              <FormControl>
+                                <Input
+                                  placeholder="Enter email address"
+                                  className={"mb-1 main-input"}
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage>
+                                {form.formState.errors.emails?.message}
+                              </FormMessage>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <DialogFooter>
+                      <Button type="submit">Submit</Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive">
@@ -239,8 +346,12 @@ function Newsletter() {
                     Are you absolutely sure?
                   </AlertDialogTitle>
                   <AlertDialogDescription>
-                    You really want to delete the following categories :{" "}
-                    {JSON.stringify(rowSelection)}
+                    You really want to delete the following emails :{" "}
+                    <ul className={"list-disc ml-8 mt-2"}>
+                      {emailsSelected.map((email) => (
+                        <li className={"font-medium text-iris"}>{email}</li>
+                      ))}
+                    </ul>
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -251,7 +362,13 @@ function Newsletter() {
                   >
                     Cancel
                   </AlertDialogCancel>
-                  <AlertDialogAction className={"bg-red-600 hover:bg-red-700"}>
+                  <AlertDialogAction
+                    className={"bg-red-600 hover:bg-red-700"}
+                    onClick={() => {
+                      dispatch(deleteManyEmailsFromNewsletter(emailsSelectedIds));
+                      setRowSelection([]);
+                    }}
+                  >
                     Continue
                   </AlertDialogAction>
                 </AlertDialogFooter>
@@ -266,7 +383,7 @@ function Newsletter() {
               <DropdownMenuContent align="end" className={"bg-white"}>
                 {table
                   .getAllColumns()
-                  .filter((column) => column.getCanHide())
+                  .filter((column) => column.getCanHide() && column.id !== '_id')
                   .map((column) => {
                     return (
                       <DropdownMenuCheckboxItem
@@ -307,7 +424,7 @@ function Newsletter() {
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
+                table.getRowModel().rows?.map((row) => (
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}

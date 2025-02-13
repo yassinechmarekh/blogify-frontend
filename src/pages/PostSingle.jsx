@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
@@ -50,85 +50,163 @@ import { FaRegHeart } from "react-icons/fa6";
 import { FaHeart } from "react-icons/fa6";
 import { FaShare } from "react-icons/fa6";
 import { FaComment } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  getLatestPost,
+  getLatestPostsByAuthorId,
+  getSpecificPost,
+  toggleLikePost,
+} from "@/redux/apiCalls/postApiCalls";
+import {
+  createComment,
+  getCommentsByPost,
+  likeComment,
+} from "@/redux/apiCalls/commentApiCalls";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { getLimitCategories } from "@/redux/apiCalls/categoryApiCalls";
 
 function PostSingle() {
-  const categories = [
-    "Technology",
-    "Travel",
-    "Sport",
-    "Business",
-    "Management",
-    "Trends",
-    "Startups",
-    "News",
-  ];
-  const [isLikeComment, setIsLikeComment] = useState(false);
-  const [isLikePost, setIsLikePost] = useState(false);
   const [showComments, setShowComments] = useState(false);
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm();
-  const onsubmit = (data) => {
-    console.log(data);
-  };
   const { toast } = useToast();
-  const usernameRef = useRef(null);
-  const emailRef = useRef(null);
-  const commentRef = useRef(null);
+  const navigate = useNavigate();
+  const { slug } = useParams();
+  const {
+    singlePost,
+    likes: postLikes,
+    authorPosts,
+    latestPosts,
+    error,
+    message,
+  } = useSelector((state) => state.post);
+  const { user } = useSelector((state) => state.auth);
+  const { comments, error: commentError } = useSelector(
+    (state) => state.comment
+  );
+  const { categories, error: categoriesError } = useSelector(
+    (state) => state.category
+  );
+  const dispatch = useDispatch();
+
+  const post = singlePost?.post;
+  const relatedPosts = singlePost?.relatedPosts;
+  const prevPost = singlePost?.prevPost;
+  const nextPost = singlePost?.nextPost;
+
+  const limitLatestPostsByAuthor = 4;
   useEffect(() => {
-    if (errors.username) {
+    dispatch(getSpecificPost(slug));
+    if (post?.author._id) {
+      dispatch(
+        getLatestPostsByAuthorId(post?.author._id, limitLatestPostsByAuthor)
+      );
+    }
+  }, [slug, post?.author._id]);
+  useEffect(() => {
+    if (singlePost?.post?._id) {
+      dispatch(getCommentsByPost(singlePost?.post?._id));
+    }
+  }, [singlePost?.post?._id]);
+  const limitCategories = 8;
+  const limitLastPosts = 3;
+  useEffect(() => {
+    dispatch(getLimitCategories(limitCategories));
+    dispatch(getLatestPost(limitLastPosts));
+  }, []);
+  useEffect(() => {
+    if (error) {
       toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong.",
-        description: errors.username.message,
-        action: (
-          <ToastAction
-            altText="Try again"
-            onClick={() => {
-              usernameRef.current.focus();
-            }}
-          >
-            Try again
-          </ToastAction>
-        ),
+        description: error,
       });
-    } else if (errors.email) {
+    } else if (message) {
       toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: errors.email.message,
-        action: (
-          <ToastAction
-            altText="Try again"
-            onClick={() => {
-              emailRef.current.focus();
-            }}
-          >
-            Try again
-          </ToastAction>
-        ),
-      });
-    } else if (errors.comment) {
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: errors.comment.message,
-        action: (
-          <ToastAction
-            altText="Try again"
-            onClick={() => {
-              commentRef.current.focus();
-            }}
-          >
-            Try again
-          </ToastAction>
-        ),
+        variant: "success",
+        title: message.title,
+        description: message.message,
+        className: "custom-toast-success",
       });
     }
-  }, [errors.username, errors.email, errors.comment]);
+  }, [error, message]);
+
+  const [isLikePost, setIsLikePost] = useState(
+    postLikes?.includes(user?.userId)
+  );
+
+  useEffect(() => {
+    setIsLikePost(postLikes?.includes(user?.userId));
+  }, [postLikes]);
+
+  const form = useForm({
+    defaultValues: {
+      username: user?.username,
+      email: user?.email,
+    },
+  });
+  const onsubmit = (data) => {
+    console.log(data);
+    if (!user) {
+      navigate("/login");
+      toast({
+        variant: "success",
+        title: "Login required",
+        description: "You must log in to your account to leave a comment.",
+        className: "custom-toast-success",
+      });
+    }
+    const newComment = {
+      postId: post?._id,
+      content: data.comment,
+    };
+    dispatch(createComment(newComment));
+    form.reset({ comment: "" });
+  };
+  const handleLikeComment = (id) => {
+    if (!user) {
+      navigate("/login");
+      toast({
+        variant: "success",
+        title: "Login required",
+        description: "You must log in to your account to like the comment.",
+        className: "custom-toast-success",
+      });
+    }
+    dispatch(likeComment(id));
+  };
+  const handleLikePost = (id) => {
+    if (!user) {
+      navigate("/login");
+      toast({
+        variant: "success",
+        title: "Login required",
+        description: "You must log in to your account to like the post.",
+        className: "custom-toast-success",
+      });
+    }
+    dispatch(toggleLikePost(id));
+  };
+  useEffect(() => {
+    if (commentError) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: commentError,
+      });
+    } else if (categoriesError) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: categoriesError,
+      });
+    }
+  }, [commentError, categoriesError]);
   return (
     <section>
       <div className="container">
@@ -143,14 +221,17 @@ function PostSingle() {
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link to="/">Business</Link>
+                  <Link
+                    to={`/categories/${post?.category.slug}`}
+                    className={"capitalize"}
+                  >
+                    {post?.category.title}
+                  </Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>
-                  How Tech Shapes the Future of Work in 2024
-                </BreadcrumbPage>
+                <BreadcrumbPage>{post?.title}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -159,58 +240,50 @@ function PostSingle() {
           <div className="py-4 text-center w-full sm:w-11/12 mx-auto">
             <h3 className={"text-gray-600 text-sm font-medium"}>
               <Link
-                to
+                to={`/user/${post?.author._id}`}
                 className={
-                  "text-iris font-semibold hover:text-space-cadet my-transition"
+                  "text-iris font-semibold hover:text-space-cadet my-transition capitalize"
                 }
               >
-                Ethan Caldwell
+                {post?.author.username}
               </Link>{" "}
-              on October 16, 2024
+              on{" "}
+              {new Date(post?.createdAt).toLocaleDateString("en-US", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
             </h3>
             <h1
               className={
                 "my-3 text-3xl sm:text-5xl text-space-cadet font-semibold"
               }
             >
-              How Tech Shapes the Future of Work in 2024
+              {post?.title}
             </h1>
-            <p className={"mb-4 w-full sm:w-3/5 mx-auto line-clamp-2"}>
-              Revision Welcome to ultimate source for fresh perspectives!
-              Explore curated content to enlighten, entertain and engage global
-              readers.
-            </p>
-            <Link className={"category-tag"}>Business</Link>
+            <p
+              className={"mb-4 w-full sm:w-3/5 mx-auto line-clamp-2"}
+              dangerouslySetInnerHTML={{ __html: post?.content }}
+            />
+            <Link
+              to={`/categories/${post?.category.slug}`}
+              className={"category-tag"}
+            >
+              {post?.category.title}
+            </Link>
           </div>
           <img
-            src="https://revision.codesupply.co/revision/wp-content/uploads/sites/2/2024/09/demo-image-0042-2048x1153.webp"
+            src={post?.image.url}
             alt="post image"
             className={"w-full rounded-2xl mt-4"}
           />
           <div className={"mt-8 flex flex-col lg:flex-row gap-6"}>
             <div className="w-full lg:w-2/3">
               <div className={"flex flex-col gap-y-2"}>
-                {[1, 2, 3, 4, 5, 6].map((index) => (
-                  <p key={index} className={"first-letter:pl-3"}>
-                    Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-                    Nisi et velit illum corrupti quasi doloribus vero,
-                    laboriosam a vitae commodi hic quisquam quod alias
-                    voluptatibus nam accusamus quas consectetur sunt iure
-                    quaerat totam fuga beatae numquam. Vel eum accusantium
-                    adipisci? Lorem ipsum dolor sit amet consectetur adipisicing
-                    elit. Numquam vero et modi, quam, ipsa dignissimos eos
-                    voluptates quasi velit, nesciunt pariatur. Hic in, ratione
-                    unde maiores quos asperiores quidem magnam similique eius
-                    aspernatur! Dolor quas enim qui a hic architecto nisi!
-                    Corporis molestias ratione, iste iure voluptate culpa omnis
-                    aliquam voluptatem officiis, ipsam architecto eaque quod
-                    incidunt quasi autem facere? Lorem ipsum dolor sit amet
-                    consectetur adipisicing elit. Maxime laudantium sunt
-                    reprehenderit explicabo alias sequi sed fugit asperiores
-                    assumenda itaque natus maiores, officia veritatis porro?
-                    Optio, rerum perspiciatis. Quod, illum?
-                  </p>
-                ))}
+                <div
+                  className={"flex flex-col gap-y-2 rich-text"}
+                  dangerouslySetInnerHTML={{ __html: post?.content }}
+                />
                 <div
                   className={
                     "py-4 flex justify-between items-center gap-4 border-b border-gray-300"
@@ -218,71 +291,92 @@ function PostSingle() {
                 >
                   <span className={"text-sm text-gray-600 font-medium"}>
                     <Link
+                      to={`/user/${post?.author._id}`}
                       className={
-                        "text-iris hover:text-space-cadet font-semibold my-trasnition"
+                        "text-iris hover:text-space-cadet capitalize font-semibold my-trasnition"
                       }
                     >
-                      Ethan Caldwell
+                      {post?.author.username}
                     </Link>{" "}
-                    on September 29, 2024
+                    on{" "}
+                    {new Date(post?.createdAt).toLocaleDateString("en-Us", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
                   </span>
-                  <Link className={"category-tag text-sm"}>Business</Link>
+                  <Link
+                    to={`/categories/${post?.category.slug}`}
+                    className={"category-tag text-sm"}
+                  >
+                    {post?.category.title}
+                  </Link>
                 </div>
               </div>
-              <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-8">
-                <Link
-                  className={
-                    "p-6 bg-white rounded-2xl shadow-lg hover:shadow-iris/40 my-transition group"
-                  }
-                >
-                  <div className={"flex justify-between items-center"}>
-                    <IoIosArrowBack
-                      size={16}
-                      className={"group-hover:animate-bounce-x"}
-                    />
-                    <span className={"sidebar-title text-xs"}>
-                      Previous Article
-                    </span>
-                    <span></span>
-                  </div>
-                  <h4
+              <div
+                className={`mt-6 grid grid-cols-1 ${
+                  prevPost && nextPost && "sm:grid-cols-2"
+                } gap-8`}
+              >
+                {prevPost && (
+                  <Link
+                    to={`/posts/${prevPost?.slug}`}
                     className={
-                      "mt-3 text-space-cadet text-center font-medium line-clamp-2"
+                      "p-6 bg-white rounded-2xl shadow-lg hover:shadow-iris/40 my-transition group"
                     }
                   >
-                    Remote Work Trends in the Digital Age
-                  </h4>
-                </Link>
-                <div
-                  className={
-                    "p-6 bg-white rounded-2xl shadow-lg hover:shadow-iris/40 my-transition group"
-                  }
-                >
-                  <div className={"flex justify-between items-center"}>
-                    <span></span>
-                    <span className={"sidebar-title text-xs"}>
-                      Next Article
-                    </span>
-                    <IoIosArrowForward
-                      size={16}
-                      className={"group-hover:animate-bounce-x"}
-                    />
-                  </div>
-                  <h4
+                    <div className={"flex justify-between items-center"}>
+                      <IoIosArrowBack
+                        size={16}
+                        className={"group-hover:animate-bounce-x"}
+                      />
+                      <span className={"sidebar-title text-xs"}>
+                        Previous Article
+                      </span>
+                      <span></span>
+                    </div>
+                    <h4
+                      className={
+                        "mt-3 text-space-cadet text-center font-medium line-clamp-2"
+                      }
+                    >
+                      {prevPost?.title}
+                    </h4>
+                  </Link>
+                )}
+                {nextPost && (
+                  <Link
+                    to={`/posts/${nextPost?.slug}`}
                     className={
-                      "mt-3 text-space-cadet text-center font-medium line-clamp-2"
+                      "p-6 bg-white rounded-2xl shadow-lg hover:shadow-iris/40 my-transition group"
                     }
                   >
-                    How Tech Shapes the Future of Work in 2024
-                  </h4>
-                </div>
+                    <div className={"flex justify-between items-center"}>
+                      <span></span>
+                      <span className={"sidebar-title text-xs"}>
+                        Next Article
+                      </span>
+                      <IoIosArrowForward
+                        size={16}
+                        className={"group-hover:animate-bounce-x"}
+                      />
+                    </div>
+                    <h4
+                      className={
+                        "mt-3 text-space-cadet text-center font-medium line-clamp-2"
+                      }
+                    >
+                      {nextPost?.title}
+                    </h4>
+                  </Link>
+                )}
               </div>
               <div className="mt-6 flex items-center gap-6">
                 <div
                   className={
                     "flex items-center gap-2 hover:opacity-80 my-transition"
                   }
-                  onClick={() => setIsLikePost(!isLikePost)}
+                  onClick={() => handleLikePost(post?._id)}
                 >
                   {isLikePost ? (
                     <FaHeart size={18} className={"text-iris"} />
@@ -294,7 +388,7 @@ function PostSingle() {
                       "text-iris font-semibold select-none cursor-pointer"
                     }
                   >
-                    8 Likes
+                    {postLikes?.length} Likes
                   </span>
                 </div>
                 <div
@@ -306,10 +400,10 @@ function PostSingle() {
                   <FaComment size={18} className={"text-iris"} />
                   <span
                     className={
-                      "text-iris font-semibold select-none cursor-pointer"
+                      "text-iris font-semibold select-none capitalize cursor-pointer"
                     }
                   >
-                    3 comments
+                    {comments?.length} comments
                   </span>
                 </div>
                 <Dialog>
@@ -360,64 +454,85 @@ function PostSingle() {
               <div className={"mt-6"}>
                 <span
                   className={
-                    "text-iris font-bold capitalize underline underline-offset-4 hover:no-underline my-transition cursor-pointer"
+                    "text-iris font-bold capitalize underline underline-offset-4 hover:no-underline my-transition cursor-pointer select-none"
                   }
                   onClick={() => setShowComments(!showComments)}
                 >
-                  View Comments (3)
+                  {comments?.length > 0
+                    ? `view comments (${comments?.length} )`
+                    : "Leave Comment"}
                 </span>
                 {showComments && (
                   <>
-                    <div className={"mt-4 flex flex-col gap-y-4"}>
-                      {[1, 2, 3].map((item) => (
-                        <div
-                          className={
-                            "py-3 mx-3 border-b border-gray-300 last:border-b-0"
-                          }
-                        >
-                          <div className="flex items-center gap-2">
-                            <Avatar className={"w-8 h-8"}>
-                              <AvatarImage
-                                src="https://github.com/shadcn.png"
-                                alt="@shadcn"
-                              />
-                              <AvatarFallback>CN</AvatarFallback>
-                            </Avatar>
-                            <span className={"text-sm text-gray-500"}>
-                              <Link
+                    {comments?.length > 0 ? (
+                      <div className={"mt-4 flex flex-col gap-y-4"}>
+                        {comments?.map((comment) => (
+                          <div
+                            key={comment._id}
+                            className={
+                              "py-3 mx-3 border-b border-gray-300 last:border-b-0"
+                            }
+                          >
+                            <div className="flex items-center gap-2">
+                              <Link to={`/user/${comment.user._id}`}>
+                                <Avatar className={"w-8 h-8"}>
+                                  <AvatarImage
+                                    src={comment.user.profilePhoto.url}
+                                    alt="profile photo user"
+                                  />
+                                  <AvatarFallback>
+                                    {comment.user.username[0]}
+                                  </AvatarFallback>
+                                </Avatar>
+                              </Link>
+                              <span className={"text-sm text-gray-500"}>
+                                <Link
+                                  to={`/user/${comment.user._id}`}
+                                  className={
+                                    "text-gray-600 hover:text-tropical-indigo font-medium capitalize my-transition"
+                                  }
+                                >
+                                  {comment.user.username}
+                                </Link>{" "}
+                                on{" "}
+                                {new Date(comment.createdAt).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    day: "numeric",
+                                    month: "long",
+                                    year: "numeric",
+                                  }
+                                )}
+                              </span>
+                            </div>
+                            <p className={"text-black mt-2"}>
+                              {comment.content}
+                            </p>
+                            <div
+                              className={"mt-1 flex items-center gap-1"}
+                              onClick={() => handleLikeComment(comment._id)}
+                            >
+                              {comment.likes.includes(user?.userId) ? (
+                                <FaHeart size={16} className={"text-iris"} />
+                              ) : (
+                                <FaRegHeart size={16} className={"text-iris"} />
+                              )}
+                              <span
                                 className={
-                                  "text-gray-600 hover:text-tropical-indigo font-medium capitalize my-transition"
+                                  "text-sm text-iris font-medium select-none cursor-pointer"
                                 }
                               >
-                                Elliot Alderson
-                              </Link>{" "}
-                              on October 9, 2024
-                            </span>
+                                {comment.likes.length} Likes
+                              </span>
+                            </div>
                           </div>
-                          <p className={"text-black mt-2"}>
-                            I’ve been following your blog for a while now, and
-                            this post might be your best one yet!
-                          </p>
-                          <div
-                            className={"mt-1 flex items-center gap-1"}
-                            onClick={() => setIsLikeComment(!isLikeComment)}
-                          >
-                            {isLikeComment ? (
-                              <FaHeart size={16} className={"text-iris"} />
-                            ) : (
-                              <FaRegHeart size={16} className={"text-iris"} />
-                            )}
-                            <span
-                              className={
-                                "text-sm text-iris font-medium select-none cursor-pointer"
-                              }
-                            >
-                              2 Likes
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className={"my-6"}>
+                        <p>No comments yet</p>
+                      </div>
+                    )}
                     <div className={"p-6 bg-white rounded-2xl"}>
                       <h4 className={"text-space-cadet text-lg font-semibold"}>
                         Leave a Comment
@@ -426,163 +541,216 @@ function PostSingle() {
                         Your email address will not be published. Required
                         fields are marked *
                       </p>
-                      <form
-                        className={"mt-4 flex flex-col gap-y-4"}
-                        onSubmit={handleSubmit(onsubmit)}
-                      >
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div className="grid w-full max-w-sm items-center gap-1.5">
-                            <Label
-                              htmlFor="uername"
-                              className={"comment-label"}
-                            >
-                              Username
-                            </Label>
-                            <Input
-                              type="text"
-                              id="uername"
-                              placeholder="Username"
-                              className={"comment-input"}
-                              {...register("username", {
+                      <Form {...form}>
+                        <form
+                          className={"mt-4 flex flex-col gap-y-4"}
+                          onSubmit={form.handleSubmit(onsubmit)}
+                        >
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="username"
+                              rules={{
                                 required:
                                   "Your username is required to leave your comment !",
-                              })}
-                              onChange={(e) =>
-                                setValue("username", e.target.value)
-                              }
-                              ref={usernameRef}
+                              }}
+                              render={({ field }) => (
+                                <FormItem className="grid w-full max-w-sm items-center gap-1.5">
+                                  <FormLabel
+                                    htmlFor="username"
+                                    className={"comment-label"}
+                                  >
+                                    Username
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      id="username"
+                                      placeholder="Username"
+                                      className={"comment-input"}
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage>
+                                    {form.formState.errors.username?.message}
+                                  </FormMessage>
+                                </FormItem>
+                              )}
                             />
-                          </div>
-                          <div className="grid w-full max-w-sm items-center gap-1.5">
-                            <Label htmlFor="email" className={"comment-label"}>
-                              Email
-                            </Label>
-                            <Input
-                              type="email"
-                              id="email"
-                              placeholder="Email"
-                              className={"comment-input"}
-                              {...register("email", {
+                            <FormField
+                              control={form.control}
+                              name="email"
+                              rules={{
                                 required:
                                   "Your email is required to leave your comment !",
-                              })}
-                              onChange={(e) =>
-                                setValue("email", e.target.value)
-                              }
-                              ref={emailRef}
+                                pattern: {
+                                  value:
+                                    /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
+                                  message: "Enter a valid email !",
+                                },
+                              }}
+                              render={({ field }) => (
+                                <FormItem className="grid w-full max-w-sm items-center gap-1.5">
+                                  <FormLabel
+                                    htmlFor="email"
+                                    className={"comment-label"}
+                                  >
+                                    Email
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      id="email"
+                                      placeholder="Email"
+                                      className={"comment-input"}
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage>
+                                    {form.formState.errors.email?.message}
+                                  </FormMessage>
+                                </FormItem>
+                              )}
                             />
                           </div>
-                        </div>
-                        <div className="grid w-full gap-1.5">
-                          <Label htmlFor="comment" className={"comment-label"}>
-                            Your Comment
-                          </Label>
-                          <Textarea
-                            placeholder="Type your comment here."
-                            id="comment"
-                            className={"comment-input"}
-                            {...register("comment", {
-                              required: "Your comment is required to submit !",
-                            })}
-                            onChange={(e) =>
-                              setValue("comment", e.target.value)
-                            }
-                            ref={commentRef}
-                          />
-                        </div>
-                        <Button type="submit" className={"w-fit main-btn"}>
-                          Submit Comment
-                        </Button>
-                      </form>
+                          <div>
+                            <FormField
+                              control={form.control}
+                              name="comment"
+                              rules={{
+                                required:
+                                  "Your comment is required to submit !",
+                              }}
+                              render={({ field }) => (
+                                <FormItem className="grid w-full gap-1.5">
+                                  <FormLabel
+                                    htmlFor="comment"
+                                    className={"comment-label"}
+                                  >
+                                    Your Comment
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Textarea
+                                      id="comment"
+                                      className={"comment-input"}
+                                      placeholder="Type your comment here."
+                                      rows={4}
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage>
+                                    {form.formState.errors.comment?.message}
+                                  </FormMessage>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          <Button type="submit" className={"w-fit main-btn"}>
+                            Submit Comment
+                          </Button>
+                        </form>
+                      </Form>
                     </div>
                   </>
                 )}
               </div>
             </div>
             <div className="w-full lg:w-1/3">
-              <AuthorCard />
-              <div className={"mt-6"}>
-                <h5 className={"sidebar-title mb-2"}>Featured Posts</h5>
-                <Swiper
-                  navigation={{
-                    nextEl: ".latestblog-swp-button-next",
-                    prevEl: ".latestblog-swp-button-prev",
-                  }}
-                  pagination={{
-                    clickable: true,
-                    el: ".latestblog-swp-pagination",
-                  }}
-                  loop={true}
-                  modules={[Navigation, Pagination]}
-                  className="latestblog relative group"
-                >
-                  <SwiperSlide>
-                    <LatestBlogCard />
-                  </SwiperSlide>
-                  <SwiperSlide>
-                    <LatestBlogCard />
-                  </SwiperSlide>
-                  <SwiperSlide>
-                    <LatestBlogCard />
-                  </SwiperSlide>
-                  <div className="latestblog-swp-button-next">
-                    <IoIosArrowForward size={30} />
-                  </div>
-                  <div className="latestblog-swp-button-prev">
-                    <IoIosArrowBack size={30} />
-                  </div>
-                  <div className="latestblog-swp-pagination"></div>
-                </Swiper>
-              </div>
-              <div className={"mt-6"}>
-                <h5 className={"sidebar-title mb-4"}>Categories</h5>
-                <div className="flex flex-wrap gap-4">
-                  {categories.map((category, index) => (
-                    <Link key={index} className={"category-tag"}>
-                      {category}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-              <div
-                className={
-                  "bg-white p-6 rounded-2xl mt-10 lg:sticky static top-4"
-                }
-              >
-                <h5 className={"sidebar-title mb-4"}>
-                  last blog of Ethan Caldwell
-                </h5>
-                <div className="flex flex-col space-y-3">
-                  {[1, 2, 3].map((blog, index) => (
-                    <div key={index}>
-                      <Link
-                        className={
-                          "text-iris text-lg font-medium line-clamp-1 flex items-center space-x-1 hover:text-space-cadet my-transition"
-                        }
-                      >
-                        <h1>Heartfelt Reflections</h1>
-                        <FaArrowUpRightFromSquare size={16} />
-                      </Link>
-                      <p className={"mt-1 text-sm line-clamp-3"}>
-                        A deep dive into emotional experiences and personal
-                        growth, sharing valuable insights on life's most
-                        meaningful moments.
-                      </p>
+              <AuthorCard author={post?.author} />
+              {latestPosts?.length > 0 && (
+                <div className={"mt-6"}>
+                  <h5 className={"sidebar-title mb-2"}>Featured Posts</h5>
+                  <Swiper
+                    navigation={{
+                      nextEl: ".latestblog-swp-button-next",
+                      prevEl: ".latestblog-swp-button-prev",
+                    }}
+                    pagination={{
+                      clickable: true,
+                      el: ".latestblog-swp-pagination",
+                    }}
+                    loop={true}
+                    modules={[Navigation, Pagination]}
+                    className="latestblog relative group"
+                  >
+                    {latestPosts?.map((post) => (
+                      <SwiperSlide key={post._id}>
+                        <LatestBlogCard post={post} />
+                      </SwiperSlide>
+                    ))}
+                    <div className="latestblog-swp-button-next">
+                      <IoIosArrowForward size={30} />
                     </div>
-                  ))}
+                    <div className="latestblog-swp-button-prev">
+                      <IoIosArrowBack size={30} />
+                    </div>
+                    <div className="latestblog-swp-pagination"></div>
+                  </Swiper>
                 </div>
-              </div>
+              )}
+              {categories?.length > 0 && (
+                <div className={"mt-6"}>
+                  <h5 className={"sidebar-title mb-4"}>Categories</h5>
+                  <div className="flex flex-wrap gap-4">
+                    {categories?.map((category) => (
+                      <Link
+                        to={`/categories/${category.slug}`}
+                        key={category._id}
+                        className={"category-tag"}
+                      >
+                        {category.title}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {authorPosts.length > 0 && (
+                <div
+                  className={
+                    "bg-white p-6 rounded-2xl mt-10 lg:sticky static top-4"
+                  }
+                >
+                  <h5 className={"sidebar-title mb-4"}>
+                    last blog of {post?.author.username}
+                  </h5>
+                  <div className="flex flex-col space-y-3">
+                    {authorPosts?.map((post) => (
+                      <div key={post._id}>
+                        <Link
+                          to={`/posts/${post.slug}`}
+                          className={
+                            "text-iris flex items-center space-x-2 hover:text-space-cadet my-transition"
+                          }
+                        >
+                          <h1 className={"text-md font-medium line-clamp-1"}>
+                            {post?.title}
+                          </h1>
+                          <FaArrowUpRightFromSquare size={13} />
+                        </Link>
+                        <p
+                          className={"mt-1 text-sm line-clamp-3"}
+                          dangerouslySetInnerHTML={{ __html: post?.content }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
-        <div className={'mt-10'}>
-          <h3 className={'text-3xl text-space-cadet font-semibold capitalize'}>Read Next</h3>
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1,2,3].map((index)=>(
-              <BlogCard key={index}/>
-            ))}
+        {relatedPosts?.length > 0 && (
+          <div className={"mt-10"}>
+            <h3
+              className={"text-3xl text-space-cadet font-semibold capitalize"}
+            >
+              Read Next
+            </h3>
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {relatedPosts.map((post) => (
+                <BlogCard key={post._id} post={post} />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </section>
   );

@@ -40,11 +40,16 @@ import {
 // Icons
 import { FaTrashAlt } from "react-icons/fa";
 import { ChevronDown } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { useToast } from "@/hooks/use-toast";
+import { deleteManyComments } from "@/redux/apiCalls/commentApiCalls";
 
 function CommentsTable({ data, columns }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
-  const [columnVisibility, setColumnVisibility] = React.useState({});
+  const [columnVisibility, setColumnVisibility] = React.useState({
+    _id: false,
+  });
   const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({
@@ -66,14 +71,50 @@ function CommentsTable({ data, columns }) {
     },
   });
 
+  const { message, error } = useSelector((state) => state.comment);
+  const { toast } = useToast();
+  React.useEffect(() => {
+    if (message) {
+      toast({
+        variant: "success",
+        description: message,
+        className: "custom-toast-success",
+      });
+    } else if (error) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: error,
+      });
+    }
+  }, [error, message]);
+
+  const commentsSelectedIds = Object.keys(rowSelection).map((key) =>
+    // table.getRowModel().rows[key].getValue("_id")
+    table
+      .getRowModel()
+      .rows.filter((item) => item.id === key)[0]
+      .getValue("_id")
+  );
+
+  const commentsSelectedTiltles = Object.keys(rowSelection).map((key) =>
+    // table.getRowModel().rows[key].getValue("content")
+    table
+      .getRowModel()
+      .rows.filter((item) => item.id === key)[0]
+      .getValue("content")
+  );
+
+  const dispatch = useDispatch();
+
   return (
     <div className="w-full text-space-cadet">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 gap-3">
         <Input
           placeholder="Filter comments..."
-          value={table.getColumn("comment")?.getFilterValue() ?? ""}
+          value={table.getColumn("content")?.getFilterValue() ?? ""}
           onChange={(event) =>
-            table.getColumn("comment")?.setFilterValue(event.target.value)
+            table.getColumn("content")?.setFilterValue(event.target.value)
           }
           className="max-w-sm main-input bg-white"
         />
@@ -91,7 +132,13 @@ function CommentsTable({ data, columns }) {
                 </AlertDialogTitle>
                 <AlertDialogDescription>
                   You really want to delete the following comments :{" "}
-                  {JSON.stringify(rowSelection)}
+                  <ul className={"list-disc ml-8 mt-2"}>
+                    {commentsSelectedTiltles.map((title) => (
+                      <li className={"capitalize font-medium text-iris"}>
+                        {title}
+                      </li>
+                    ))}
+                  </ul>
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -102,7 +149,13 @@ function CommentsTable({ data, columns }) {
                 >
                   Cancel
                 </AlertDialogCancel>
-                <AlertDialogAction className={"bg-red-600 hover:bg-red-700"}>
+                <AlertDialogAction
+                  className={"bg-red-600 hover:bg-red-700"}
+                  onClick={() => {
+                    dispatch(deleteManyComments(commentsSelectedIds));
+                    setRowSelection([]);
+                  }}
+                >
                   Continue
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -120,7 +173,7 @@ function CommentsTable({ data, columns }) {
             <DropdownMenuContent align="end" className={"bg-white"}>
               {table
                 .getAllColumns()
-                .filter((column) => column.getCanHide())
+                .filter((column) => column.getCanHide() && column.id !== "_id")
                 .map((column) => {
                   return (
                     <DropdownMenuCheckboxItem

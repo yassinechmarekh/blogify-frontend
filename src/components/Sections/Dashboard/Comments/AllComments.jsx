@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 // Components
@@ -27,123 +27,18 @@ import { FaHeart } from "react-icons/fa6";
 import { ArrowUpDown, CalendarIcon } from "lucide-react";
 import CommentsTable from "./CommentsTable";
 import { FaTrashAlt } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { getAllComments } from "@/redux/apiCalls/commentApiCalls";
+import HoverUser from "@/components/Global/HoverUser";
+import DeleteComment from "./DeleteComment";
 
-const allComments = [
-  {
-    post: "Top 7 Travel Startups to Watch Out for in 2024",
-    author: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    comment:
-      "This article is exactly what I needed! Your insights are incredibly helpful.",
-    owner: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    likes: 250.0,
-  },
-  {
-    post: "Top 7 Travel Startups to Watch Out for in 2024",
-    author: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    comment:
-      "This article is exactly what I needed! Your insights are incredibly helpful.",
-    owner: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    likes: 250.0,
-  },
-  {
-    post: "Top 7 Travel Startups to Watch Out for in 2024",
-    author: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    comment:
-      "This article is exactly what I needed! Your insights are incredibly helpful.",
-    owner: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    likes: 250.0,
-  },
-  {
-    post: "Top 7 Travel Startups to Watch Out for in 2024",
-    author: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    comment:
-      "This article is exactly what I needed! Your insights are incredibly helpful.",
-    owner: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    likes: 250.0,
-  },
-  {
-    post: "Top 7 Travel Startups to Watch Out for in 2024",
-    author: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    comment:
-      "This article is exactly what I needed! Your insights are incredibly helpful.",
-    owner: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    likes: 250.0,
-  },
-  {
-    post: "Top 7 Travel Startups to Watch Out for in 2024",
-    author: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    comment:
-      "This article is exactly what I needed! Your insights are incredibly helpful.",
-    owner: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    likes: 250.0,
-  },
-  {
-    post: "Top 7 Travel Startups to Watch Out for in 2024",
-    author: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    comment:
-      "This article is exactly what I needed! Your insights are incredibly helpful.",
-    owner: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    likes: 250.0,
-  },
-];
 
 const columns = [
+  {
+    accessorKey: "_id",
+    header: "ID",
+    enableHiding: true,
+  },
   {
     id: "select",
     header: ({ table }) => (
@@ -179,55 +74,28 @@ const columns = [
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <Link
-        to={"/"}
-        className={"hover:text-iris hover:underline my-transition"}
-      >
-        {row.getValue("post")}
-      </Link>
-    ),
+    cell: ({ row }) => {
+      const post = row.original.postId;
+      return (
+        <Link
+          to={`/posts/${post.slug}`}
+          className={"hover:text-iris hover:underline capitalize my-transition"}
+        >
+          {post.title}
+        </Link>
+      );
+    },
   },
   {
     accessorKey: "author",
     header: "Author",
     cell: ({ row }) => {
-      const author = row.original.author;
-      return (
-        <HoverCard className={"min-w-28"}>
-          <HoverCardTrigger asChild>
-            <Button variant="link" className={"text-space-cadet"}>
-              @{author.username}
-            </Button>
-          </HoverCardTrigger>
-          <HoverCardContent className="w-80">
-            <div className="flex justify-between space-x-4">
-              <Link to={"/"}>
-                <Avatar>
-                  <AvatarImage src={author.profile} />
-                  <AvatarFallback>{author.username}</AvatarFallback>
-                </Avatar>
-              </Link>
-              <div className="space-y-1">
-                <Link to={"/"} className="text-sm font-semibold">
-                  @{author.username}
-                </Link>
-                <p className="text-sm">{author.bio}</p>
-                <div className="flex items-center pt-2">
-                  <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />{" "}
-                  <span className="text-xs text-muted-foreground">
-                    Joined December 2021
-                  </span>
-                </div>
-              </div>
-            </div>
-          </HoverCardContent>
-        </HoverCard>
-      );
+      const author = row.original.postId.author;
+      return <HoverUser user={author} />;
     },
   },
   {
-    accessorKey: "comment",
+    accessorKey: "content",
     header: ({ column }) => {
       return (
         <Button
@@ -239,46 +107,17 @@ const columns = [
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div>{row.getValue("comment")}</div>
-    ),
+    cell: ({ row }) => {
+      const {content} = row.original;
+      return <div>{row.getValue('content')}</div>;
+    },
   },
   {
     accessorKey: "owner",
     header: "Owner",
     cell: ({ row }) => {
-      const owner = row.original.owner;
-      return (
-        <HoverCard className={"min-w-28"}>
-          <HoverCardTrigger asChild>
-            <Button variant="link" className={"text-space-cadet"}>
-              @{owner.username}
-            </Button>
-          </HoverCardTrigger>
-          <HoverCardContent className="w-80">
-            <div className="flex justify-between space-x-4">
-              <Link to={"/"}>
-                <Avatar>
-                  <AvatarImage src={owner.profile} />
-                  <AvatarFallback>{owner.username}</AvatarFallback>
-                </Avatar>
-              </Link>
-              <div className="space-y-1">
-                <Link to={"/"} className="text-sm font-semibold">
-                  @{owner.username}
-                </Link>
-                <p className="text-sm">{owner.bio}</p>
-                <div className="flex items-center pt-2">
-                  <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />{" "}
-                  <span className="text-xs text-muted-foreground">
-                    Joined December 2021
-                  </span>
-                </div>
-              </div>
-            </div>
-          </HoverCardContent>
-        </HoverCard>
-      );
+      const owner = row.original.user;
+      return <HoverUser user={owner} />;
     },
   },
   {
@@ -294,57 +133,35 @@ const columns = [
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="flex items-center justify-center gap-1">
-        <FaHeart size={14} /> <span>{row.getValue("likes")}</span>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const { likes } = row.original;
+      return (
+        <div className="flex items-center justify-center gap-1">
+          <FaHeart size={14} /> <span>{likes.length}</span>
+        </div>
+      );
+    },
   },
   {
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
-      return (
-        <AlertDialog>
-          <AlertDialogTrigger
-            className={"p-2 bg-red-600 hover:bg-red-700 text-white rounded-md"}
-          >
-            <FaTrashAlt size={14} />
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle className={"text-space-cadet"}>
-                Are you absolutely sure?
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-              <p>You really want to delete this comment :</p>
-              <span className={'text-iris first-letter:capitalize font-medium'}>{row.getValue('comment')}</span>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel
-                className={
-                  "bg-iris hover:bg-tropical-indigo text-white hover:text-white"
-                }
-              >
-                Cancel
-              </AlertDialogCancel>
-              <AlertDialogAction className={"bg-red-600 hover:bg-red-700"}>
-                Continue
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      );
+      const { content, _id } = row.original;
+      return <DeleteComment content={content} id={_id} />;
     },
   },
 ];
 
 function AllComments() {
+  const { comments, message } = useSelector((state) => state.comment);
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(getAllComments());
+  }, [message]);
   return (
     <section>
       <h1 className={"title-dashboard-pages"}>All Comments</h1>
-      <CommentsTable data={allComments} columns={columns} />
+      <CommentsTable data={comments} columns={columns} />
     </section>
   );
 }

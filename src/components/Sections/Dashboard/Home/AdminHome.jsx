@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 // Components
 import {
@@ -16,32 +16,46 @@ import { MdArticle } from "react-icons/md";
 import { FaComments } from "react-icons/fa6";
 import UserTable from "./UserTable";
 import CategoriesChart from "./CategoriesChart";
+import { useDispatch, useSelector } from "react-redux";
+import { getAuthorsStats, getReadersStats } from "@/redux/apiCalls/userApiCalls";
+import { getPostStats } from "@/redux/apiCalls/postApiCalls";
+import { getCommentsStats } from "@/redux/apiCalls/commentApiCalls";
 
-function Home() {
+function AdminHome() {
+  const {usersLimit, authorsStats, readersStats} = useSelector(state => state.user);
+  const { postStats } = useSelector(state => state.post);
+  const {commentStats} = useSelector(state => state.comment);
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(getAuthorsStats());
+    dispatch(getReadersStats());
+    dispatch(getPostStats());
+    dispatch(getCommentsStats());
+  },[])
   const cards = [
     {
       title: "Authors",
       icon: ImUsers,
-      value: 204,
-      bonus: 30,
+      value: authorsStats?.authorsCount,
+      bonus: authorsStats?.countLastMonth,
     },
     {
       title: "Readers",
       icon: FaBookReader,
-      value: 537,
-      bonus: 137,
+      value: readersStats?.readersCount,
+      bonus: readersStats?.countLastMonth,
     },
     {
       title: "Posts",
       icon: MdArticle,
-      value: 538,
-      bonus: 189,
+      value: postStats?.postsCount,
+      bonus: postStats?.countLastMonth,
     },
     {
       title: "Comments",
       icon: FaComments,
-      value: 1003,
-      bonus: 372,
+      value: commentStats?.commentsCount,
+      bonus: commentStats?.countLastMonth,
     },
   ];
   return (
@@ -73,7 +87,7 @@ function Home() {
           <CardHeader>
             <CardTitle className={"text-space-cadet"}>Blogify Users</CardTitle>
             <CardDescription>
-              +210 Users join Blogify every month.
+              +{usersLimit.count} Users join Blogify last month.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -85,4 +99,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default AdminHome;

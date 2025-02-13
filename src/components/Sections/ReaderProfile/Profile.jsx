@@ -21,15 +21,28 @@ import { ToastAction } from "@/components/ui/toast";
 
 // Icons
 import { FaCamera } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { getUser, updateDataProfile, uploadProfileImage } from "@/redux/apiCalls/userApiCalls";
+import { updateUserAuth } from "@/redux/apiCalls/authApiCalls";
+import { LuLoaderCircle } from "react-icons/lu";
 
 function Profile() {
+  const { user: userAuth } = useSelector((state) => state.auth);
+  const { user, error, message, loading } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
+  const { toast } = useToast();
+  useEffect(() => {
+    if (userAuth.userId) {
+      dispatch(getUser(userAuth.userId));
+    }
+  }, [userAuth.userId]);
   const onsubmit = (data) => {
     const result = {
       username: data.username,
       job: data.job,
       bio: data.bio,
       address: data.address,
-      socialLinks: {
+      socialLink: {
         facebook: data.facebook,
         twitter: data.twitter,
         instagram: data.instagram,
@@ -37,8 +50,52 @@ function Profile() {
       },
     };
     console.log(result);
+    if (user) {
+      dispatch(updateDataProfile(user?._id, result));
+      dispatch(updateUserAuth(result.username, null, null));
+    }
   };
-  const form = useForm();
+  const form = useForm({
+    defaultValues: {
+      username: user?.username,
+      job: user?.job,
+      bio: user?.bio,
+      address: user?.address,
+      facebook: user?.socialLink.facebook,
+      twitter: user?.socialLink.twitter,
+      instagram: user?.socialLink.instagram,
+      linkedin: user?.socialLink.linkedin,
+    },
+  });
+  useEffect(() => {
+    if (user) {
+      form.reset({
+        username: user?.username,
+        job: user?.job,
+        bio: user?.bio,
+        address: user?.address,
+        facebook: user?.socialLink.facebook,
+        twitter: user?.socialLink.twitter,
+        instagram: user?.socialLink.instagram,
+        linkedin: user?.socialLink.linkedin,
+      });
+    }
+  }, [user, form.reset]);
+  useEffect(() => {
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: error,
+      });
+    } else if (message) {
+      toast({
+        variant: "succes",
+        description: message,
+        className: "custom-toast-success",
+      });
+    }
+  }, [error, message]);
   const uploadImageForm = useForm({
     defaultValues: {
       profileImg: null,
@@ -49,8 +106,13 @@ function Profile() {
   );
   const uploadSubmit = (data) => {
     console.log(data);
+    const formData = new FormData();
+    formData.append('image', data.profileImg);
+    dispatch(uploadProfileImage(formData));
   };
-  const { toast } = useToast();
+  useEffect(() => {
+    dispatch(updateUserAuth(null, null, user?.profilePhoto.url));
+  },[user?.profilePhoto.url]);
   useEffect(() => {
     if (uploadImageForm.formState.errors.profileImg) {
       toast({
@@ -87,18 +149,18 @@ function Profile() {
                 src={
                   imageProfile
                     ? URL.createObjectURL(imageProfile)
-                    : "https://github.com/shadcn.png"
+                    : user?.profilePhoto.url
                 }
               />
-              <AvatarFallback>CN</AvatarFallback>
+              <AvatarFallback>{user?.username[0].toUpperCase()}</AvatarFallback>
             </Avatar>
 
             <span
               className={
-                "hidden group-hover:flex absolute inset-0 bg-black/20 rounded-full items-center justify-center"
+                "hidden group-hover:flex absolute inset-0 bg-black/50 rounded-full items-center justify-center"
               }
             >
-              <FaCamera size={20} className={"text-iris"} />
+              <FaCamera size={20} className={"text-background"} />
             </span>
           </Label>
           <Input
@@ -132,12 +194,16 @@ function Profile() {
             }}
           />
           <button
-            className={
-              "text-xs text-white font-medium bg-iris py-1 px-2 rounded-md"
-            }
             type="submit"
+            className={`bg-iris text-white text-xs w-24 h-6 flex items-center justify-center rounded-md ${
+              loading && "pointer-events-none"
+            }`}
           >
-            Upload Photo
+            {loading ? (
+              <LuLoaderCircle size={16} className={"animate-spin"} />
+            ) : (
+              <span>Upload Profile</span>
+            )}
           </button>
         </div>
       </form>

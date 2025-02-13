@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 // Components
 import { CartesianGrid, LabelList, Line, LineChart } from "recharts";
@@ -18,41 +18,33 @@ import {
 
 // Icons
 import { FaArrowTrendUp } from "react-icons/fa6";
+import { useDispatch, useSelector } from "react-redux";
+import { getStatsPostsChart } from "@/redux/apiCalls/postApiCalls";
 
 function CategoriesChart() {
-  const chartData = [
-    { category: "chrome", posts: 275, fill: "var(--color-chrome)" },
-    { category: "safari", posts: 200, fill: "var(--color-safari)" },
-    { category: "firefox", posts: 187, fill: "var(--color-firefox)" },
-    { category: "edge", posts: 173, fill: "var(--color-edge)" },
-    { category: "other", posts: 90, fill: "var(--color-other)" },
-  ];
-  const chartConfig = {
-    posts: {
-      label: "Posts",
-      color: "#514DCC",
-    },
-    chrome: {
-      label: "Chrome",
-      color: "hsl(var(--chart-1))",
-    },
-    safari: {
-      label: "Safari",
-      color: "hsl(var(--chart-2))",
-    },
-    firefox: {
-      label: "Firefox",
-      color: "hsl(var(--chart-3))",
-    },
-    edge: {
-      label: "Edge",
-      color: "hsl(var(--chart-4))",
-    },
-    other: {
-      label: "Other",
-      color: "hsl(var(--chart-5))",
-    },
-  };
+  const { postsChart } = useSelector((state) => state.post);
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(getStatsPostsChart());
+  }, []);
+  useEffect(() => {
+    console.log(postsChart?.chartConfig);
+  }, [postsChart?.chartConfig]);
+
+  if (!postsChart || !postsChart.stats || !postsChart.chartConfig) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Post Categories Chart</CardTitle>
+          <CardDescription>Loading or no data available...</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p>No chart data to display.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -62,10 +54,10 @@ function CategoriesChart() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
+        <ChartContainer config={postsChart?.chartConfig}>
           <LineChart
             accessibilityLayer
-            data={chartData}
+            data={postsChart?.stats}
             margin={{
               top: 24,
               left: 24,
@@ -101,7 +93,10 @@ function CategoriesChart() {
                 className="fill-foreground"
                 fontSize={12}
                 dataKey="category"
-                formatter={(value) => chartConfig[value]?.label}
+                formatter={(value) =>
+                  postsChart?.chartConfig[value.toLowerCase()]?.label ||
+                  "Unknown"
+                }
               />
             </Line>
           </LineChart>
@@ -109,7 +104,8 @@ function CategoriesChart() {
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
         <div className="flex gap-2 font-medium leading-none">
-          The category that contains more posts is Programming{" "}
+          The category that contains more posts is{" "}
+          <span className={"capitalize"}>{postsChart?.popular.category}</span>{" "}
           <FaArrowTrendUp className="h-4 w-4" />
         </div>
       </CardFooter>

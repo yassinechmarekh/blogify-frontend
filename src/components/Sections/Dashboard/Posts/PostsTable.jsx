@@ -40,16 +40,16 @@ import {
 
 // Icons
 import { FaTrashAlt } from "react-icons/fa";
-import {
-  ChevronDown,
-} from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { deleteManyPosts } from "@/redux/apiCalls/postApiCalls";
 
-
-
-function PostsTable({data, columns}) {
+function PostsTable({ data, columns }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
-  const [columnVisibility, setColumnVisibility] = React.useState({});
+  const [columnVisibility, setColumnVisibility] = React.useState({
+    _id: false,
+  });
   const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({
@@ -70,6 +70,24 @@ function PostsTable({data, columns}) {
       rowSelection,
     },
   });
+
+  const postsSelectedIds = Object.keys(rowSelection).map((key) =>
+    // table.getRowModel().rows[key].getValue("_id");
+    table
+      .getRowModel()
+      .rows.filter((item) => item.id === key)[0]
+      .getValue("_id")
+  );
+
+  const postsSelectedTiltles = Object.keys(rowSelection).map((key) =>
+    // table.getRowModel().rows[key].getValue("title")
+    table
+      .getRowModel()
+      .rows.filter((item) => item.id === key)[0]
+      .getValue("title")
+  );
+
+  const dispatch = useDispatch();
 
   return (
     <div className="w-full text-space-cadet">
@@ -96,7 +114,13 @@ function PostsTable({data, columns}) {
                 </AlertDialogTitle>
                 <AlertDialogDescription>
                   You really want to delete the following posts :{" "}
-                  {JSON.stringify(rowSelection)}
+                  <ul className={"list-disc ml-8 mt-2"}>
+                    {postsSelectedTiltles.map((title) => (
+                      <li className={"capitalize font-medium text-iris"}>
+                        {title}
+                      </li>
+                    ))}
+                  </ul>
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -107,7 +131,14 @@ function PostsTable({data, columns}) {
                 >
                   Cancel
                 </AlertDialogCancel>
-                <AlertDialogAction className={"bg-red-600 hover:bg-red-700"}>
+                <AlertDialogAction
+                  className={"bg-red-600 hover:bg-red-700"}
+                  onClick={() => {
+                    console.log(postsSelectedIds);
+                    dispatch(deleteManyPosts(postsSelectedIds));
+                    setRowSelection([]);
+                  }}
+                >
                   Continue
                 </AlertDialogAction>
               </AlertDialogFooter>

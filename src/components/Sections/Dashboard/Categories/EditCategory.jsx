@@ -37,31 +37,39 @@ import { ToastAction } from "@/components/ui/toast";
 
 // Icons
 import { FaCamera } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  updateCategory,
+  updateCategoryImage,
+} from "@/redux/apiCalls/categoryApiCalls";
+import { RiLoader4Fill } from "react-icons/ri";
 
-function EditCategory({ openEdit, setOpenEdit }) {
-  const dataForm = useForm();
+function EditCategory({ openEdit, setOpenEdit, category }) {
+  const { loading, message, error } = useSelector((state) => state.category);
+  const dispatch = useDispatch();
+  const dataForm = useForm({
+    defaultValues: {
+      title: category.title,
+      description: category.description,
+      icon: category.icon,
+    },
+  });
   const uploadForm = useForm();
   const onsubmit = (data) => {
     console.log(data);
-    if (data) {
-      toast({
-        variant: "succes",
-        title: "Category updated.",
-        description: `${data.title} is updated successfully !`,
-        className: "custom-toast-success",
-      });
-    }
+    const updatedFields = Object.keys(data).reduce((acc, key) => {
+      if (dataForm.formState.dirtyFields[key]) {
+        acc[key] = data[key];
+      }
+      return acc;
+    }, {});
+    dispatch(updateCategory(category._id, updatedFields));
   };
   const uploadSubmit = (data) => {
     console.log(data);
-    if (data) {
-      toast({
-        variant: "succes",
-        title: "Image updated.",
-        description: `Your category image is updated successfully !`,
-        className: "custom-toast-success",
-      });
-    }
+    const formData = new FormData();
+    formData.append("image", data.image);
+    dispatch(updateCategoryImage(category._id, formData));
   };
   const { toast } = useToast();
   const [categoryImg, setCategoryImg] = useState(null);
@@ -84,38 +92,54 @@ function EditCategory({ openEdit, setOpenEdit }) {
       });
     }
   }, [uploadForm.formState.errors.image]);
+  useEffect(() => {
+    if (message) {
+      toast({
+        variant: "succes",
+        title: "Image updated.",
+        description: message,
+        className: "custom-toast-success",
+      });
+    } else if (error) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: error,
+      });
+    }
+  }, [error, message]);
   const icons = [
     {
       title: "Technology",
-      icon: "./icons/tech.webp",
+      icon: "https://res.cloudinary.com/dcz9jqkbz/image/upload/v1737305327/tech_srfr8g.webp",
     },
     {
       title: "Travel",
-      icon: "./icons/travel.webp",
+      icon: "https://res.cloudinary.com/dcz9jqkbz/image/upload/v1737305327/travel_2x-1_d2mjqv.webp",
     },
     {
       title: "Sport",
-      icon: "./icons/sport.webp",
+      icon: "https://res.cloudinary.com/dcz9jqkbz/image/upload/v1737305327/sport_kgpyb2.webp",
     },
     {
       title: "Business",
-      icon: "./icons/bussiness.webp",
+      icon: "https://res.cloudinary.com/dcz9jqkbz/image/upload/v1737305327/bussiness_j9tqxp.webp",
     },
     {
       title: "Management",
-      icon: "./icons/manage.webp",
+      icon: "https://res.cloudinary.com/dcz9jqkbz/image/upload/v1737305327/manage_uj3w7m.webp",
     },
     {
       title: "Trends",
-      icon: "./icons/trend.webp",
+      icon: "https://res.cloudinary.com/dcz9jqkbz/image/upload/v1737305327/trand_c1q5ya.webp",
     },
     {
       title: "Startups",
-      icon: "./icons/startups.webp",
+      icon: "https://res.cloudinary.com/dcz9jqkbz/image/upload/v1737305327/start_2x_kqjtxt.webp",
     },
     {
       title: "News",
-      icon: "./icons/news.webp",
+      icon: "https://res.cloudinary.com/dcz9jqkbz/image/upload/v1737305327/news_2x-1_swgp8i.webp",
     },
   ];
   return (
@@ -136,7 +160,7 @@ function EditCategory({ openEdit, setOpenEdit }) {
               src={
                 categoryImg && categoryImg.type.startsWith("image/")
                   ? URL.createObjectURL(categoryImg)
-                  : "https://revision.codesupply.co/revision/wp-content/uploads/sites/2/2024/09/Travel@2x.webp"
+                  : category.image
               }
               alt="categoory image"
               className={"w-40 mx-auto"}
@@ -178,11 +202,15 @@ function EditCategory({ openEdit, setOpenEdit }) {
           />
           <button
             type="submit"
-            className={
-              "bg-iris hover:bg-iris/80 py-1 px-3 text-xs text-white rounded-md my-transition absolute bottom-0 right-4"
-            }
+            className={`bg-iris hover:bg-iris/80 w-16 h-6 flex items-center justify-center text-xs text-white rounded-md my-transition absolute bottom-0 right-4 ${
+              loading && "bg-iris/80 pointer-events-none"
+            }`}
           >
-            Upload
+            {loading ? (
+              <RiLoader4Fill size={16} className={"animate-spin"} />
+            ) : (
+              <span>Upload</span>
+            )}
           </button>
         </form>
         <Form {...dataForm}>
@@ -211,10 +239,17 @@ function EditCategory({ openEdit, setOpenEdit }) {
               name="icon"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className={"main-label"}>Icon</FormLabel>
+                  <FormLabel
+                    className={"main-label"}
+                    onClick={() => {
+                      console.log(category.icon);
+                    }}
+                  >
+                    Icon
+                  </FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    defaultValue={category.icon}
                     className={"main-input"}
                   >
                     <FormControl>
@@ -227,7 +262,7 @@ function EditCategory({ openEdit, setOpenEdit }) {
                         <SelectItem key={index} value={icon.icon}>
                           <div className={"flex items-center gap-1"}>
                             <img
-                              src="https://revision.codesupply.co/revision/wp-content/uploads/sites/2/2024/09/tech@2x.webp"
+                              src={icon.icon}
                               alt={icon.title}
                               className={"w-6 h-6"}
                             />
@@ -235,6 +270,16 @@ function EditCategory({ openEdit, setOpenEdit }) {
                           </div>
                         </SelectItem>
                       ))}
+                      <SelectItem value={null}>
+                        <div className={"flex items-center gap-1"}>
+                          <img
+                            src="https://res.cloudinary.com/dcz9jqkbz/image/upload/v1737330274/Untitled_design_1_srxpud.png"
+                            alt={"none"}
+                            className={"w-6 h-6"}
+                          />
+                          <span>None</span>
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </FormItem>
@@ -267,14 +312,13 @@ function EditCategory({ openEdit, setOpenEdit }) {
                 </FormItem>
               )}
             />
-            <Button type="submit" className={"w-full"}>
-              Update
-            </Button>
-            {/* <SheetFooter>
+            <SheetFooter>
               <SheetClose asChild>
-                <Button type="submit">Save changes</Button>
+                <Button type="submit" className={"w-full"}>
+                  Update
+                </Button>
               </SheetClose>
-            </SheetFooter> */}
+            </SheetFooter>
           </form>
         </Form>
       </SheetContent>

@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getLikedComments } from "@/redux/apiCalls/commentApiCalls";
 
 // Components
 import {
@@ -9,122 +11,32 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
 
 // Icons
 import { FaHeart } from "react-icons/fa6";
 import { Link } from "react-router-dom";
-import { CalendarIcon } from "lucide-react";
-
-const likedComments = [
-  {
-    post: "Top 7 Travel Startups to Watch Out for in 2024",
-    comment:
-      "This article is exactly what I needed! Your insights are incredibly helpful.",
-    owner: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    likes: 250.0,
-  },
-  {
-    post: "Top 7 Travel Startups to Watch Out for in 2024",
-    comment:
-      "This article is exactly what I needed! Your insights are incredibly helpful.",
-    owner: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    likes: 250.0,
-  },
-  {
-    post: "Top 7 Travel Startups to Watch Out for in 2024",
-    comment:
-      "This article is exactly what I needed! Your insights are incredibly helpful.",
-    owner: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    likes: 250.0,
-  },
-  {
-    post: "Top 7 Travel Startups to Watch Out for in 2024",
-    comment:
-      "This article is exactly what I needed! Your insights are incredibly helpful.",
-    owner: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    likes: 250.0,
-  },
-  {
-    post: "Top 7 Travel Startups to Watch Out for in 2024",
-    comment:
-      "This article is exactly what I needed! Your insights are incredibly helpful.",
-    owner: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    likes: 250.0,
-  },
-  {
-    post: "Top 7 Travel Startups to Watch Out for in 2024",
-    comment:
-      "This article is exactly what I needed! Your insights are incredibly helpful.",
-    owner: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    likes: 250.0,
-  },
-  {
-    post: "Top 7 Travel Startups to Watch Out for in 2024",
-    comment:
-      "This article is exactly what I needed! Your insights are incredibly helpful.",
-    owner: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    likes: 250.0,
-  },
-  {
-    post: "Top 7 Travel Startups to Watch Out for in 2024",
-    comment:
-      "This article is exactly what I needed! Your insights are incredibly helpful.",
-    owner: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    likes: 250.0,
-  },
-  {
-    post: "Top 7 Travel Startups to Watch Out for in 2024",
-    comment:
-      "This article is exactly what I needed! Your insights are incredibly helpful.",
-    owner: {
-      username: "Erling",
-      profile: "https://github.com/vercel.png",
-      bio: "The React Framework – created and maintained by @vercel.",
-    },
-    likes: 250.0,
-  },
-];
+import HoverUser from "@/components/Global/HoverUser";
+import { useToast } from "@/hooks/use-toast";
 
 function LikedComments() {
+  const { likedComments, error } = useSelector((state) => state.comment);
+  const dispatch = useDispatch();
+  const pageNumber = 12;
+  const [currentPage, setCurrentPage] = useState(1);
+  useEffect(() => {
+    dispatch(getLikedComments(pageNumber, currentPage));
+  }, [currentPage]);
+  const {toast} = useToast();
+  useEffect(() => {
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: error,
+      });
+    }
+  }, [error]);
   return (
     <section>
       <h1 className={"title-dashboard-pages"}>Liked Comments</h1>
@@ -138,68 +50,73 @@ function LikedComments() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {likedComments.map((comment, index) => (
-            <TableRow key={index}>
-              <TableCell>
-                <Link
-                  className={"hover:text-iris hover:underline my-transition"}
-                >
-                  {comment.post}
-                </Link>
-              </TableCell>
-              <TableCell>{comment.comment}</TableCell>
-              <TableCell>
-                <HoverCard>
-                  <HoverCardTrigger asChild>
-                    <Button variant="link" className={"text-space-cadet"}>
-                      @{comment.owner.username}
-                    </Button>
-                  </HoverCardTrigger>
-                  <HoverCardContent className="w-80">
-                    <div className="flex justify-between space-x-4">
-                      <Avatar>
-                        <AvatarImage src={comment.owner.profile} />
-                        <AvatarFallback>VC</AvatarFallback>
-                      </Avatar>
-                      <div className="space-y-1">
-                        <h4 className="text-sm font-semibold">
-                          @{comment.owner.username}
-                        </h4>
-                        <p className="text-sm">{comment.owner.bio}</p>
-                        <div className="flex items-center pt-2">
-                          <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />{" "}
-                          <span className="text-xs text-muted-foreground">
-                            Joined December 2021
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </HoverCardContent>
-                </HoverCard>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-1">
-                  <FaHeart size={16} />
-                  <span>{comment.likes}</span>
-                </div>
+          {likedComments.comments?.length > 0 ? (
+            likedComments?.comments?.map((comment, index) => (
+              <TableRow key={index}>
+                <TableCell>
+                  <Link
+                    to={`/posts/${comment.postId.slug}`}
+                    className={"hover:text-iris hover:underline my-transition"}
+                  >
+                    {comment.postId.title}
+                  </Link>
+                </TableCell>
+                <TableCell>{comment.content}</TableCell>
+                <TableCell>
+                  <HoverUser user={comment.user} />
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-1">
+                    <FaHeart size={16} />
+                    <span>{comment.likes.length}</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell className={"text-center"} colspan={4}>
+                No liked comments yet
               </TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
       </Table>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          12 of 150 row(s) selected.
+      {likedComments?.comments?.length > 0 && (
+        <div className="flex items-center justify-end space-x-2 py-4">
+          <div className="space-x-2 text-space-cadet">
+            <Button
+              variant="outline"
+              size="sm"
+              className={currentPage === 1 && "pointer-events-none opacity-60"}
+              onClick={() => {
+                if (currentPage !== 1) {
+                  setCurrentPage(currentPage - 1);
+                }
+              }}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className={
+                currentPage === Math.ceil(likedComments.total / pageNumber) &&
+                "pointer-events-none opacity-60"
+              }
+              onClick={() => {
+                if (
+                  currentPage !== Math.ceil(likedComments.total / pageNumber)
+                ) {
+                  setCurrentPage(currentPage + 1);
+                }
+              }}
+            >
+              Next
+            </Button>
+          </div>
         </div>
-        <div className="space-x-2 text-space-cadet">
-          <Button variant="outline" size="sm">
-            Previous
-          </Button>
-          <Button variant="outline" size="sm">
-            Next
-          </Button>
-        </div>
-      </div>
+      )}
     </section>
   );
 }

@@ -1,5 +1,7 @@
 import React from "react";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet, useNavigate, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { logoutUser } from "@/redux/apiCalls/authApiCalls";
 
 // Componenets
 import {
@@ -12,6 +14,35 @@ import {
 } from "@/components/ui/breadcrumb";
 
 function ReaderProfile() {
+  const { username } = useParams();
+  const menu = [
+    {
+      name: "profile",
+      url: `/${username}/profile`,
+    },
+    {
+      name: "account",
+      url: `/${username}/account`,
+    },
+    {
+      name: "comments",
+      url: `/${username}/comments`,
+    },
+    {
+      name: "liked posts",
+      url: `/${username}/liked-posts`,
+    },
+    {
+      name: "liked comments",
+      url: `/${username}/liked-comments`,
+    },
+  ];
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const logoutHandler = () => {
+    dispatch(logoutUser());
+    navigate("/");
+  };
   return (
     <div className={"container"}>
       <Breadcrumb>
@@ -21,7 +52,7 @@ function ReaderProfile() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href={"/"}>Author</BreadcrumbLink>
+            <BreadcrumbLink href={"/"} className={'capitalize'}>{username}</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
@@ -43,68 +74,24 @@ function ReaderProfile() {
             "flex flex-row flex-wrap lg:flex-col w-fit lg:w-3/12 text-xs sm:text-sm lg:text-base"
           }
         >
+          {menu.map((item, index) => (
+            <NavLink
+              to={item.url}
+              className={({ isActive }) =>
+                `reader-profile-menu ${
+                  isActive
+                    ? "reader-profile-menu-active"
+                    : "reader-profile-menu-inactive"
+                }`
+              }
+              key={index}
+            >
+              {item.name}
+            </NavLink>
+          ))}
           <NavLink
-            to={"/reader-profile/profile"}
-            className={({ isActive }) =>
-              `reader-profile-menu ${
-                isActive
-                  ? "reader-profile-menu-active"
-                  : "reader-profile-menu-inactive"
-              }`
-            }
-          >
-            Profile
-          </NavLink>
-          <NavLink
-            to={"/reader-profile/account"}
-            className={({ isActive }) =>
-              `reader-profile-menu ${
-                isActive
-                  ? "reader-profile-menu-active"
-                  : "reader-profile-menu-inactive"
-              }`
-            }
-          >
-            Account
-          </NavLink>
-          <NavLink
-            to={"/reader-profile/comments"}
-            className={({ isActive }) =>
-              `reader-profile-menu ${
-                isActive
-                  ? "reader-profile-menu-active"
-                  : "reader-profile-menu-inactive"
-              }`
-            }
-          >
-            Comments
-          </NavLink>
-          <NavLink
-            to={"/reader-profile/liked-posts"}
-            className={({ isActive }) =>
-              `reader-profile-menu ${
-                isActive
-                  ? "reader-profile-menu-active"
-                  : "reader-profile-menu-inactive"
-              }`
-            }
-          >
-            Liked Posts
-          </NavLink>
-          <NavLink
-            to={"/reader-profile/liked-comments"}
-            className={({ isActive }) =>
-              `reader-profile-menu ${
-                isActive
-                  ? "reader-profile-menu-active"
-                  : "reader-profile-menu-inactive"
-              }`
-            }
-          >
-            Liked Comments
-          </NavLink>
-          <NavLink
-            to={"/"}
+            to={'/'}
+            onClick={logoutHandler}
             className={({ isActive }) =>
               `reader-profile-menu ${
                 isActive
@@ -116,9 +103,7 @@ function ReaderProfile() {
             Logout
           </NavLink>
         </div>
-        <div
-          className={"w-full lg:w-9/12 xl:w-7/12"}
-        >
+        <div className={"w-full lg:w-9/12 xl:w-7/12"}>
           <Outlet />
         </div>
       </div>
